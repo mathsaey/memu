@@ -1,10 +1,14 @@
+#![feature(const_generics)]
+
 mod memory;
 use memory::Memory;
 
-fn main() {
-    let mut memory: Memory = Memory::new();
+const MEM_SIZE: usize = 4 * 1024;
+const MEM_MAX:  usize = 0xFFF;
 
-    memory.write(0x00, 10);
-    let test = memory.read(0x00);
-    println!("test is {}", test);
+type MemCell = u8;
+
+
+fn main() {
+    let mut mem: Memory<MemCell, MEM_SIZE> = Memory::new(MEM_MAX);
 }

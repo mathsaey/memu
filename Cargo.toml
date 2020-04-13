@@ -6,4 +6,5 @@ edition = "2018"
 description = "A Chip-8 emulator to dip my toes in Emulation & Rust"
 
 [dependencies]
-sdl2 = "0.33"
+num = "0.2.1"
+minifb = "0.15.3"

@@ -1,30 +1,38 @@
-const MEM_SIZE: usize = 4 * 1024;
-const MEM_RANGE: std::ops::Range<usize> = 0x000..0xFFF;
+extern crate num;
+use num::PrimInt;
 
-pub type Cell = u8;
+use std::ops::Range;
+
 pub type Address = usize;
-pub struct Memory([Cell; MEM_SIZE]);
 
-fn valid_address(addr: Address) -> bool {
-    MEM_RANGE.contains(&addr)
+pub struct Memory<T: PrimInt, const SIZE: usize> {
+    mem: [T; SIZE],
+    range: Range<usize>
 }
 
-impl Memory {
-    pub fn new() -> Memory {
-        Memory([0x00; MEM_SIZE])
+impl<T: PrimInt, const SIZE: usize> Memory<T, SIZE> {
+    fn valid_address(&self, addr: Address) -> bool {
+        self.range.contains(&addr)
     }
 
-    pub fn read(&self, address: Address) -> Cell {
-        if valid_address(address) {
-            self.0[address]
-        } else {
-            0x00
+    pub fn new(max_addr: Address) -> Memory<T, SIZE> {
+        Memory{
+            mem: [T::zero(); SIZE],
+            range: 0x000..(max_addr + 1)
         }
     }
 
-    pub fn write(&mut self, address: Address, data: Cell) {
-        if valid_address(address) {
-            self.0[address] = data;
+    pub fn read(&self, address: Address) -> T {
+        if self.valid_address(address) {
+            self.mem[address]
+        } else {
+            T::zero()
+        }
+    }
+
+    pub fn write(&mut self, address: Address, data: T) {
+        if self.valid_address(address) {
+            self.mem[address] = data;
         }
     }
 }
@@ -32,23 +40,24 @@ impl Memory {
 #[cfg(test)]
 mod tests {
     use super::*;
+    const SIZE: usize = 4 * 1024;
 
     #[test]
     fn read_out_of_range_returns_0x00() {
-        let mut mem = Memory::new();
+        let mut mem: Memory<u8, SIZE> = Memory::new(0xFFF);
 
-        for addr in MEM_RANGE {
+        for addr in mem.range.clone() {
             mem.write(addr, 1);
         }
 
         assert_eq!(1,  mem.read(0x000)); // Sanity check
+        assert_eq!(1,  mem.read(0xFFF)); // Sanity check
         assert_eq!(0,  mem.read(0xFFF1)); // out of range
-
     }
 
     #[test]
     fn can_write() {
-        let mut mem = Memory::new();
+        let mut mem: Memory<u8, SIZE> = Memory::new(0xFFF);
 
         mem.write(0x000, 1);
         mem.write(0x200, 10);
