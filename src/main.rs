@@ -1,7 +1,7 @@
 #![feature(const_generics)]
 
-mod memory;
-use memory::Memory;
+mod generic;
+use generic::memory::Memory;
 
 const MEM_SIZE: usize = 4 * 1024;
 const MEM_MAX:  usize = 0xFFF;
