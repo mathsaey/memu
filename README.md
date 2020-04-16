@@ -15,7 +15,7 @@ Do expect a lot of overengineering as I figure out what I can and cannot do with
 
 ## Installation and Use
 
-Using nightly rust, simply build and install with cargo:
+Simply build and install with cargo:
 
 - `cargo build`
 - `cargo run`

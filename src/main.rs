@@ -1,14 +1,14 @@
-#![feature(const_generics)]
+use memu::chip8::Chip8;
+use memu::generic::emulator::Emulator;
 
-mod generic;
-use generic::memory::Memory;
-
-const MEM_SIZE: usize = 4 * 1024;
-const MEM_MAX:  usize = 0xFFF;
-
-type MemCell = u8;
-
+use std::fs;
 
 fn main() {
-    let mut mem: Memory<MemCell, MEM_SIZE> = Memory::new(MEM_MAX);
+    let rom = fs::read("roms/test.ch8").unwrap();
+    let mut chip8 = Chip8::new();
+    chip8.load_rom(rom);
+
+    for _ in 1..30 {
+        chip8.cycle();
+    }
 }
