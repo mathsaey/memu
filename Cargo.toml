@@ -6,5 +6,5 @@ edition = "2018"
 description = "Toy emulators written in Rust"
 
 [dependencies]
-num = "0.2.1"
-minifb = "0.15.3"
+flexi_logger = "0.15"
+log = "0.4"

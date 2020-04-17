@@ -1,11 +1,11 @@
 mod opcode;
 mod instruction;
 
+use log::*;
+use opcode::OpCode;
+
 // TODO:
 //  - move stack to separate module, push & pop
-
-use crate::generic::emulator::Emulator;
-use opcode::OpCode;
 
 const STACK_SIZE: usize = 16;
 const GP_AMOUNT:  usize = 16;
@@ -23,10 +23,27 @@ pub struct Chip8 {
     // ------------------------------------------------------------------------
 }
 
-impl Emulator for Chip8 {
-    type Cell = u8;
+impl crate::Emulator for Chip8 {
+    fn load_rom(&mut self, content: Vec<u8>) {
+        for (ctr, el) in content.into_iter().enumerate() {
+            self.mem[self.reg_pc as usize + ctr] = el;
+        }
+    }
 
-    fn new() -> Chip8 {
+    fn cycle(&mut self) {
+        let instruction = self.fetch().decode();
+        debug!("PC: {:#X} Instruction: {}", self.reg_pc, instruction);
+
+        // Temporary
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input).unwrap();
+        instruction.exec(self);
+    }
+
+}
+
+impl Chip8 {
+    pub fn new() -> Chip8 {
         Chip8 {
             mem:    [0x00; MEM_SIZE],
             stack:  [0x00; STACK_SIZE],
@@ -36,34 +53,16 @@ impl Emulator for Chip8 {
         }
     }
 
-    fn load_rom(&mut self, content: Vec<Self::Cell>) {
-        for (ctr, el) in content.into_iter().enumerate() {
-            self.mem[self.reg_pc as usize + ctr] = el;
-        }
-    }
-
-    fn cycle(&mut self) {
-        let instruction = self.fetch().decode();
-        println!("${:X} {}", self.reg_pc, instruction);
-
-        // let mut input = String::new();
-        // std::io::stdin().read_line(&mut input).unwrap();
-        instruction.exec(self);
-    }
-
-}
-
-impl Chip8 {
     fn fetch(&mut self) -> OpCode {
-        let c1 = self.mem[self.reg_pc as usize];
-        let c2 = self.mem[(self.reg_pc + 1) as usize];
+        let code = self.get_opcode(self.reg_pc);
         self.reg_pc += 2;
-
-        OpCode::from_cells(c1, c2)
+        code
     }
 
-    pub fn print_mem(&self) {
-        let base = self.reg_pc as usize;
-        println!("Memory contents: {:?}", &self.mem[base..base + 32]);
+    fn get_opcode(&self, idx: u16) -> OpCode {
+        OpCode::from_cells(
+            self.mem[idx as usize],
+            self.mem[(idx + 1) as usize]
+        )
     }
 }

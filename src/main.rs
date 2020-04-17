@@ -1,14 +1,8 @@
-use memu::chip8::Chip8;
-use memu::generic::emulator::Emulator;
-
-use std::fs;
+use memu::{Conf, EmulatorKind};
 
 fn main() {
-    let rom = fs::read("roms/test.ch8").unwrap();
-    let mut chip8 = Chip8::new();
-    chip8.load_rom(rom);
-
-    for _ in 1..30 {
-        chip8.cycle();
-    }
+    let rom_path = "roms/test.ch8".to_string();
+    let conf = Conf::new(EmulatorKind::Chip8, rom_path, true);
+    memu::run(conf)
+        .unwrap_or_else(|e| panic!("Emulator failed with error: `{}`", e));
 }
