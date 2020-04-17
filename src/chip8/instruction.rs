@@ -20,7 +20,7 @@ impl Instruction {
     }
 
     pub fn exec(self, chip8: &mut Chip8) {
-        trace!("Executing: {}", self);
+        trace!("Execute `{}`", self);
         let inst = self.instruction;
         inst(chip8, self.operands)
     }

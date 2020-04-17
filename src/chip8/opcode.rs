@@ -175,11 +175,14 @@ impl OpCode {
             (0xF, _, 6, 5) => Instruction::create(
                 self, "LD", decode_reg(self), instruction::not_implemented
             ),
-            _ => Instruction::create(
-                self, "???", Operands::Empty, instruction::not_implemented
-            )
+            _ => {
+                warn!("Failed to decode: `{:#06X}`", self);
+                Instruction::create(
+                    self, "???", Operands::Empty, instruction::not_implemented
+                )
+            }
         };
-        trace!("Decode {:#06X} into {}", self, ins);
+        trace!("Decoded `{:#06X}` into `{}`", self, ins);
         ins
     }
 }
@@ -239,7 +242,7 @@ impl fmt::Display for Operands {
             Operands::Address(addr) =>
                 write!(f, "{:#03X}", addr),
             Operands::Reg(reg) =>
-                write!(f, "v{:X}\t", reg),
+                write!(f, "v{:X}", reg),
             Operands::Regs(regx, regy) =>
                 write!(f, "v{:X}\tv{:X}", regx, regy),
             Operands::RegAndConst(reg, cnst) =>
