@@ -1,4 +1,5 @@
 use std::fmt;
+use log::*;
 
 use super::Chip8;
 use super::opcode::{OpCode, Operands};
@@ -19,6 +20,7 @@ impl Instruction {
     }
 
     pub fn exec(self, chip8: &mut Chip8) {
+        trace!("Executing: {}", self);
         let inst = self.instruction;
         inst(chip8, self.operands)
     }
@@ -29,12 +31,18 @@ impl Instruction {
 // ------------ //
 
 pub fn not_implemented(_: &mut Chip8, _: Operands) {
-    // panic!("Unimplemented opcode");
+    warn!("Ignoring unimplemented opcode");
 }
 
 pub fn jp_1nnn(e: &mut Chip8, o: Operands) {
     if let Operands::Address(a) = o {
         e.reg_pc = a;
+    }
+}
+
+pub fn ld_6xkk(e: &mut Chip8, o: Operands) {
+    if let Operands::RegAndConst(r, cns) = o {
+        e.regs[r as usize] = cns;
     }
 }
 
@@ -44,6 +52,6 @@ pub fn jp_1nnn(e: &mut Chip8, o: Operands) {
 
 impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({:#06X})\t{:<4}\t{:}", self.code, self.name, self.operands)
+        write!(f, "{:<4}\t{:}", self.name, self.operands)
     }
 }

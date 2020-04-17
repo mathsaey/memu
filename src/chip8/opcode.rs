@@ -1,4 +1,5 @@
 use std::fmt;
+use log::*;
 
 use super::instruction;
 use super::instruction::Instruction;
@@ -33,7 +34,7 @@ impl OpCode {
     }
 
     pub fn decode(self) -> Instruction {
-        match self.to_matchtup() {
+        let ins = match self.to_matchtup() {
             // 00E0
             (0, 0, 0xE, 0x0) => Instruction::create(
                 self, "CLS", Operands::Empty, instruction::not_implemented
@@ -68,7 +69,7 @@ impl OpCode {
             ),
             // 6xkk
             (6, _, _, _) => Instruction::create(
-                self, "LD", decode_reg_const(self), instruction::not_implemented
+                self, "LD", decode_reg_const(self), instruction::ld_6xkk
             ),
             // 7xkk
             (7, _, _, _) => Instruction::create(
@@ -177,7 +178,9 @@ impl OpCode {
             _ => Instruction::create(
                 self, "???", Operands::Empty, instruction::not_implemented
             )
-        }
+        };
+        trace!("Decode {:#06X} into {}", self, ins);
+        ins
     }
 }
 

@@ -2,6 +2,7 @@ mod opcode;
 mod instruction;
 
 use log::*;
+
 use opcode::OpCode;
 
 // TODO:
@@ -32,7 +33,6 @@ impl crate::Emulator for Chip8 {
 
     fn cycle(&mut self) {
         let instruction = self.fetch().decode();
-        debug!("PC: {:#X} Instruction: {}", self.reg_pc, instruction);
 
         // Temporary
         let mut input = String::new();
@@ -55,6 +55,7 @@ impl Chip8 {
 
     fn fetch(&mut self) -> OpCode {
         let code = self.get_opcode(self.reg_pc);
+        trace!("Fetched `{:#06X}` from ${:#06X}", code, self.reg_pc);
         self.reg_pc += 2;
         code
     }

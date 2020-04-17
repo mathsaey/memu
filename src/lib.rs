@@ -36,7 +36,7 @@ impl Conf {
 
     fn init_logger(&self) -> Result<(), Box<dyn Error>> {
         let mut builder = LogSpecBuilder::new();
-        builder.default(LevelFilter::Debug);
+        builder.default(LevelFilter::Trace);
 
         Logger::with(builder.build()).start()?;
         Ok(())
