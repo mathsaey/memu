@@ -1,7 +1,8 @@
 pub mod chip8;
 
-use flexi_logger::{LogSpecBuilder, Logger};
-use log::LevelFilter;
+use flexi_logger::{LogSpecBuilder, Logger, DeferredNow, style};
+use log::{LevelFilter, Record};
+use log::*;
 
 use std::error::Error;
 use std::fs;
@@ -25,6 +26,24 @@ struct State {
     emulator: Box<dyn Emulator>
 }
 
+// ------------- //
+// Logger Format //
+// ------------- //
+
+fn padded_colored_format(
+    w: &mut dyn std::io::Write,
+    _now: &mut DeferredNow,
+    record: &Record,
+) -> Result<(), std::io::Error> {
+    let level = record.level();
+    write!(
+        w,
+        "{:<5} [{:<25}] {}",
+        style(level, level),
+        record.module_path().unwrap_or("<unnamed>"),
+        style(level, record.args())
+    )
+}
 // -------------- //
 // Initialisation //
 // -------------- //
@@ -38,7 +57,9 @@ impl Conf {
         let mut builder = LogSpecBuilder::new();
         builder.default(LevelFilter::Trace);
 
-        Logger::with(builder.build()).start()?;
+        Logger::with(builder.build())
+            .format_for_stderr(padded_colored_format)
+            .start()?;
         Ok(())
     }
 
