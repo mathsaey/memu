@@ -87,11 +87,11 @@ impl Inner {
 // --------------- //
 
 use flexi_logger::writers::LogWriter;
-use flexi_logger::{DeferredNow, Record, FormatFunction};
+use flexi_logger::{Level, DeferredNow, Record, FormatFunction};
 
 const LOG_CAP: usize = 5;
 
-type LogBuffer = Arc<Mutex<VecDeque<String>>>;
+type LogBuffer = Arc<Mutex<VecDeque<(String, Style)>>>;
 
 #[derive(Clone)]
 pub struct LogWrapper{
@@ -116,10 +116,19 @@ impl LogWriter for LogWrapper {
         format(&mut writer, now, record).unwrap();
         let string = String::from_utf8(writer).unwrap();
 
+        let col = match record.level() {
+            Level::Error => Color::Red,
+            Level::Warn => Color::Yellow,
+            Level::Info => Color::White,
+            Level::Debug => Color::Gray,
+            Level::Trace => Color::DarkGray
+        };
+        let style = Style::new().fg(col);
+
         if buffer.len() == LOG_CAP {
             buffer.pop_back();
         }
-        buffer.push_front(string);
+        buffer.push_front((string, style));
 
         Ok(())
     }
@@ -140,7 +149,7 @@ impl LogWriter for LogWrapper {
 impl View for LogWrapper {
     fn draw(&self, frame: &mut Frame, area: Rect) {
         let buffer = self.buffer.lock().unwrap();
-        let items = buffer.iter().map(|i| Text::raw(i));
+        let items = buffer.iter().map(|t| Text::styled(t.0.clone(), t.1));
         let list = List::new(items)
             .block(Block::default().title("Logs").borders(Borders::ALL))
             .style(Style::default().fg(Color::White));
