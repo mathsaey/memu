@@ -5,11 +5,11 @@ mod logger;
 // Emulators
 mod chip8;
 
-use debug_view::DebugView;
+use debug_view::{DebugView, Frame, Rect};
 
 use log::*;
-use std::error::Error;
 use std::fs;
+use std::error::Error;
 
 pub enum EmulatorKind {
     Chip8,
@@ -18,6 +18,14 @@ pub enum EmulatorKind {
 pub trait Emulator {
     fn load_rom(&mut self, rom: Vec<u8>);
     fn cycle(&mut self);
+
+    fn draw(&self, frame: &mut Frame, area: Rect) {
+        let text = [tui::widgets::Text::raw("Debug view not implemented")];
+        let par = tui::widgets::Paragraph::new(text.iter())
+            .alignment(tui::layout::Alignment::Center);
+
+        frame.render_widget(par, area);
+    }
 }
 
 pub struct Conf {
@@ -72,11 +80,16 @@ impl Conf {
 // Program Entry Point //
 // ------------------- //
 
+use std::{thread, time};
+
 pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
     let mut state = conf.to_state()?;
 
-    for _ in 1..30 {
-        state.emulator.cycle()
+    for _ in 1..10 {
+        state.emulator.cycle();
+        state.debug_view.draw(&state.emulator)?;
+        thread::sleep(time::Duration::from_secs(1));
     }
+
     Ok(())
 }

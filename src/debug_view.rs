@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+use std::sync::{Arc, Mutex};
 use std::error::Error;
 use std::io;
 
@@ -6,8 +8,7 @@ use tui::layout::{Layout, Direction, Constraint};
 use tui::widgets::*;
 use tui::style::*;
 
-use std::collections::VecDeque;
-use std::sync::{Arc, Mutex};
+use super::Emulator;
 
 type Backend = CrosstermBackend<io::Stdout>;
 type Terminal = tui::Terminal<Backend>;
@@ -17,8 +18,7 @@ pub type Frame<'a> = tui::Frame<'a, Backend>;
 pub type Rect = tui::layout::Rect;
 
 // Allow various class to the view
-pub trait View {
-    fn draw(&self, frame: &mut Frame, area: Rect);
+pub trait DrawableEmulator: Emulator {
 }
 
 pub struct DebugView(Option<Inner>);
@@ -42,9 +42,9 @@ impl DebugView {
         self.0.as_ref().map(|inner| inner.logbox())
     }
 
-    pub fn draw(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn draw(&mut self, emulator: &Box<dyn Emulator>) -> Result<(), Box<dyn Error>> {
         if let Some(inner) = self.0.as_mut() {
-            inner.draw()?;
+            inner.draw(emulator)?;
         }
         Ok(())
     }
@@ -67,8 +67,8 @@ impl Inner {
     }
 
     #[inline]
-    fn draw(&mut self) -> Result<(), Box<dyn Error>> {
-        let buffer = self.log_wrapper.clone();
+    fn draw(&mut self, emulator: &Box<dyn Emulator>) -> Result<(), Box<dyn Error>> {
+        let log_buffer = self.log_wrapper.buffer.clone();
 
         self.terminal.draw(|mut frame| {
             let chunks = Layout::default()
@@ -76,7 +76,8 @@ impl Inner {
                 .constraints([Constraint::Min(0), Constraint::Length(LOG_CAP as u16 + 2)].as_ref())
                 .split(frame.size());
 
-            buffer.draw(&mut frame, chunks[1]);
+            draw_log(log_buffer, &mut frame, chunks[1]);
+            emulator.draw(&mut frame, chunks[0]);
         })?;
         Ok(())
     }
@@ -146,14 +147,12 @@ impl LogWriter for LogWrapper {
     }
 }
 
-impl View for LogWrapper {
-    fn draw(&self, frame: &mut Frame, area: Rect) {
-        let buffer = self.buffer.lock().unwrap();
-        let items = buffer.iter().map(|t| Text::styled(t.0.clone(), t.1));
-        let list = List::new(items)
-            .block(Block::default().title("Logs").borders(Borders::ALL))
-            .style(Style::default().fg(Color::White));
+fn draw_log(buffer: LogBuffer, frame: &mut Frame, area: Rect) {
+    let buffer = buffer.lock().unwrap();
+    let items = buffer.iter().map(|t| Text::styled(t.0.clone(), t.1));
+    let list = List::new(items)
+        .block(Block::default().title("Logs").borders(Borders::ALL))
+        .style(Style::default().fg(Color::White));
 
-        frame.render_widget(list, area);
-    }
+    frame.render_widget(list, area);
 }
