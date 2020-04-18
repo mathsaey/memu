@@ -1,8 +1,8 @@
-use std::fmt;
 use log::*;
+use std::fmt;
 
-use super::Chip8;
 use super::opcode::{OpCode, Operands};
+use super::Chip8;
 
 pub type InsFn = fn(&mut Chip8, Operands);
 pub type InsName = &'static str;
@@ -16,7 +16,12 @@ pub struct Instruction {
 
 impl Instruction {
     pub fn create(c: OpCode, n: InsName, o: Operands, i: InsFn) -> Instruction {
-        Instruction { code: c, name: n, operands: o, instruction: i }
+        Instruction {
+            code: c,
+            name: n,
+            operands: o,
+            instruction: i,
+        }
     }
 
     pub fn exec(self, chip8: &mut Chip8) {

@@ -6,5 +6,9 @@ edition = "2018"
 description = "Toy emulators written in Rust"
 
 [dependencies]
+# Logging
 flexi_logger = "0.15"
 log = "0.4"
+# Debug View
+crossterm = "0.17"
+tui = { version = "0.9", default-features = false, features = ['crossterm'] }

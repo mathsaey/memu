@@ -1,5 +1,5 @@
-mod opcode;
 mod instruction;
+mod opcode;
 
 use log::*;
 
@@ -9,19 +9,18 @@ use opcode::OpCode;
 //  - move stack to separate module, push & pop
 
 const STACK_SIZE: usize = 16;
-const GP_AMOUNT:  usize = 16;
-const MEM_SIZE:   usize = 4 * 1024;
+const GP_AMOUNT: usize = 16;
+const MEM_SIZE: usize = 4 * 1024;
 
 pub struct Chip8 {
-    // Main Memory ------------------------------------------------------------
-    mem:   [u8; MEM_SIZE],
-    // Stack ------------------------------------------------------------------
+    // Main Memory
+    mem: [u8; MEM_SIZE],
+    // Stack
     stack: [u16; STACK_SIZE], // Stack to store program counter
-    // Registers --------------------------------------------------------------
-    regs:  [u8; GP_AMOUNT],   // General purpose, V0 to VF
-    reg_i:  u16,              // Address register
-    reg_pc: u16,              // Program counter (pseudo)
-    // ------------------------------------------------------------------------
+    // Registers
+    regs: [u8; GP_AMOUNT], // General purpose, V0 to VF
+    reg_i: u16,            // Address register
+    reg_pc: u16,           // Program counter (pseudo)
 }
 
 impl crate::Emulator for Chip8 {
@@ -39,16 +38,15 @@ impl crate::Emulator for Chip8 {
         std::io::stdin().read_line(&mut input).unwrap();
         instruction.exec(self);
     }
-
 }
 
 impl Chip8 {
     pub fn new() -> Chip8 {
         Chip8 {
-            mem:    [0x00; MEM_SIZE],
-            stack:  [0x00; STACK_SIZE],
-            regs:   [0x00; GP_AMOUNT],
-            reg_i:  0x000,
+            mem: [0x00; MEM_SIZE],
+            stack: [0x00; STACK_SIZE],
+            regs: [0x00; GP_AMOUNT],
+            reg_i: 0x000,
             reg_pc: 0x200, // Programs start at 0x200
         }
     }
@@ -61,9 +59,6 @@ impl Chip8 {
     }
 
     fn get_opcode(&self, idx: u16) -> OpCode {
-        OpCode::from_cells(
-            self.mem[idx as usize],
-            self.mem[(idx + 1) as usize]
-        )
+        OpCode::from_cells(self.mem[idx as usize], self.mem[(idx + 1) as usize])
     }
 }
