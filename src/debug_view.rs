@@ -1,12 +1,15 @@
 use std::collections::VecDeque;
-use std::sync::{Arc, Mutex};
 use std::error::Error;
 use std::io;
+use std::sync::{Arc, Mutex};
+
+use crossterm::event::{read, Event};
+use crossterm::terminal;
 
 use tui::backend::CrosstermBackend;
-use tui::layout::{Layout, Direction, Constraint};
-use tui::widgets::*;
+use tui::layout::{Constraint, Direction, Layout};
 use tui::style::*;
+use tui::widgets::*;
 
 use super::Emulator;
 
@@ -18,14 +21,13 @@ pub type Frame<'a> = tui::Frame<'a, Backend>;
 pub type Rect = tui::layout::Rect;
 
 // Allow various class to the view
-pub trait DrawableEmulator: Emulator {
-}
+pub trait DrawableEmulator: Emulator {}
 
 pub struct DebugView(Option<Inner>);
 
 struct Inner {
     terminal: Terminal,
-    log_wrapper: LogWrapper
+    log_wrapper: LogWrapper,
 }
 
 impl DebugView {
@@ -48,6 +50,11 @@ impl DebugView {
         }
         Ok(())
     }
+
+    pub fn wait_for_key(&self) -> Result<Event, Box<dyn Error>> {
+        let event = read()?;
+        Ok(event)
+    }
 }
 
 impl Inner {
@@ -57,8 +64,15 @@ impl Inner {
         let mut terminal = Terminal::new(backend)?;
         let log_wrapper = LogWrapper::new();
 
+        terminal::enable_raw_mode()?;
+
         terminal.clear()?;
-        Ok(Inner{terminal, log_wrapper})
+        terminal.hide_cursor()?;
+
+        Ok(Inner {
+            terminal,
+            log_wrapper,
+        })
     }
 
     #[inline]
@@ -83,28 +97,34 @@ impl Inner {
     }
 }
 
+impl Drop for Inner {
+    fn drop(&mut self) {
+        terminal::disable_raw_mode().unwrap();
+    }
+}
+
 // --------------- //
 // Logging Support //
 // --------------- //
 
 use flexi_logger::writers::LogWriter;
-use flexi_logger::{Level, DeferredNow, Record, FormatFunction};
+use flexi_logger::{DeferredNow, FormatFunction, Level, Record};
 
 const LOG_CAP: usize = 5;
 
 type LogBuffer = Arc<Mutex<VecDeque<(String, Style)>>>;
 
 #[derive(Clone)]
-pub struct LogWrapper{
+pub struct LogWrapper {
     buffer: LogBuffer,
-    format: FormatFunction
+    format: FormatFunction,
 }
 
 impl LogWrapper {
     fn new() -> LogWrapper {
         let buffer = Arc::new(Mutex::new(VecDeque::with_capacity(LOG_CAP)));
         let format = flexi_logger::colored_default_format;
-        LogWrapper{buffer, format}
+        LogWrapper { buffer, format }
     }
 }
 
@@ -122,7 +142,7 @@ impl LogWriter for LogWrapper {
             Level::Warn => Color::Yellow,
             Level::Info => Color::White,
             Level::Debug => Color::Gray,
-            Level::Trace => Color::DarkGray
+            Level::Trace => Color::DarkGray,
         };
         let style = Style::new().fg(col);
 
@@ -151,7 +171,7 @@ fn draw_log(buffer: LogBuffer, frame: &mut Frame, area: Rect) {
     let buffer = buffer.lock().unwrap();
     let items = buffer.iter().map(|t| Text::styled(t.0.clone(), t.1));
     let list = List::new(items)
-        .block(Block::default().title("Logs").borders(Borders::ALL))
+        .block(Block::default().title("Log").borders(Borders::ALL))
         .style(Style::default().fg(Color::White));
 
     frame.render_widget(list, area);

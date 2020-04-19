@@ -1,4 +1,4 @@
-use flexi_logger::{style, DeferredNow, LogSpecBuilder, Logger, LogTarget};
+use flexi_logger::{style, DeferredNow, LogSpecBuilder, LogTarget, Logger};
 use log::{LevelFilter, Record};
 use std::error::Error;
 
@@ -18,7 +18,7 @@ pub fn setup(debug_view: &DebugView) -> Result<(), Box<dyn Error>> {
     // Redirect log output to the debug view if it's enabled.
     logger = match debug_view.log_writer() {
         Some(writer) => logger.log_target(LogTarget::Writer(writer)),
-        None => logger
+        None => logger,
     };
 
     logger.start()?;

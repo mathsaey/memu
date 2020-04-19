@@ -8,8 +8,8 @@ mod chip8;
 use debug_view::{DebugView, Frame, Rect};
 
 use log::*;
-use std::fs;
 use std::error::Error;
+use std::fs;
 
 pub enum EmulatorKind {
     Chip8,
@@ -21,8 +21,8 @@ pub trait Emulator {
 
     fn draw(&self, frame: &mut Frame, area: Rect) {
         let text = [tui::widgets::Text::raw("Debug view not implemented")];
-        let par = tui::widgets::Paragraph::new(text.iter())
-            .alignment(tui::layout::Alignment::Center);
+        let par =
+            tui::widgets::Paragraph::new(text.iter()).alignment(tui::layout::Alignment::Center);
 
         frame.render_widget(par, area);
     }
@@ -80,15 +80,28 @@ impl Conf {
 // Program Entry Point //
 // ------------------- //
 
-use std::{thread, time};
+use crossterm::event::{Event, KeyCode, KeyEvent};
 
 pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
     let mut state = conf.to_state()?;
+    state.debug_view.draw(&state.emulator)?;
 
-    for _ in 1..10 {
-        state.emulator.cycle();
-        state.debug_view.draw(&state.emulator)?;
-        thread::sleep(time::Duration::from_secs(1));
+    loop {
+        let event = state.debug_view.wait_for_key()?;
+        match event {
+            Event::Key(KeyEvent {
+                code: KeyCode::Char(' '),
+                modifiers: _,
+            }) => {
+                state.emulator.cycle();
+                state.debug_view.draw(&state.emulator)?;
+            }
+            Event::Key(KeyEvent {
+                code: KeyCode::Char('q'),
+                modifiers: _,
+            }) => break,
+            _ => continue,
+        }
     }
 
     Ok(())
