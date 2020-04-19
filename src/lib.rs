@@ -100,6 +100,7 @@ pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
                 code: KeyCode::Char('q'),
                 modifiers: _,
             }) => break,
+            Event::Resize(_, _) => state.debug_view.draw(&state.emulator)?,
             _ => continue,
         }
     }
