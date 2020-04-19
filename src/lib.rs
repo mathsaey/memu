@@ -7,19 +7,24 @@ mod chip8;
 
 use debug_view::{DebugView, Frame, Rect};
 
-use log::*;
 use std::error::Error;
 use std::fs;
+use log::*;
 
 pub enum EmulatorKind {
     Chip8,
 }
 
 pub trait Emulator {
-    fn load_rom(&mut self, rom: Vec<u8>);
-    fn cycle(&mut self);
+    fn clock_rate(&self) -> usize;
+    fn screen_dimensions(&self) -> (usize, usize);
 
-    fn draw(&self, frame: &mut Frame, area: Rect) {
+    fn load_rom(&mut self, rom: Vec<u8>);
+    fn cycle(&mut self) -> bool;
+
+    fn screen_buffer(&self) -> &[u32];
+
+    fn draw_debug(&self, frame: &mut Frame, area: Rect) {
         let text = [tui::widgets::Text::raw("Debug view not implemented")];
         let par =
             tui::widgets::Paragraph::new(text.iter()).alignment(tui::layout::Alignment::Center);

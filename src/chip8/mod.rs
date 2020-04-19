@@ -8,10 +8,12 @@ use opcode::OpCode;
 
 // TODO:
 //  - move stack to separate module, push & pop
+//  - Or just use dequeue?
 
 const STACK_SIZE: usize = 16;
 const GP_AMOUNT: usize = 16;
 const MEM_SIZE: usize = 4 * 1024;
+const SCREEN: (usize, usize) = (64, 32);
 
 pub struct Chip8 {
     // Main Memory
@@ -24,33 +26,46 @@ pub struct Chip8 {
     reg_pc: u16,           // Program counter (pseudo)
     reg_dt: u8,            // Delay timer
     reg_st: u8,            // Sound timer
+    // Graphics
+    screen: Vec<u32>       // Screen
 }
 
 impl crate::Emulator for Chip8 {
+    fn clock_rate(&self) -> usize {
+        1500
+    }
+
+    fn screen_dimensions(&self) -> (usize, usize) {
+        SCREEN
+    }
+
     fn load_rom(&mut self, content: Vec<u8>) {
         for (ctr, el) in content.into_iter().enumerate() {
             self.mem[self.reg_pc as usize + ctr] = el;
         }
     }
 
-    fn cycle(&mut self) {
+    fn cycle(&mut self) -> bool {
         let opcode = self.fetch();
         let instruction = opcode.decode();
         trace!("Decoded `{:#06X}` into `{}`", opcode, instruction);
-
-        // Temporary
-        // let mut input = String::new();
-        // std::io::stdin().read_line(&mut input).unwrap();
         instruction.exec(self);
+        false
     }
 
-    fn draw(&self, frame: &mut Frame, rect: Rect) {
-        draw(&self, frame, rect)
+    fn screen_buffer(&self) -> &[u32] {
+        &self.screen
+    }
+
+    fn draw_debug(&self, frame: &mut Frame, rect: Rect) {
+        draw_debug(&self, frame, rect)
     }
 }
 
 impl Chip8 {
     pub fn new() -> Chip8 {
+        let (width, height) = SCREEN;
+
         Chip8 {
             mem: [0x00; MEM_SIZE],
             stack: [0x00; STACK_SIZE],
@@ -59,6 +74,7 @@ impl Chip8 {
             reg_pc: 0x200, // Programs start at 0x200
             reg_dt: 0x00,
             reg_st: 0x00,
+            screen: vec![0x0; width * height]
         }
     }
 
@@ -83,7 +99,7 @@ use tui::style::*;
 use tui::widgets::*;
 
 #[inline]
-fn draw(state: &Chip8, frame: &mut Frame, rect: Rect) {
+fn draw_debug(state: &Chip8, frame: &mut Frame, rect: Rect) {
     let top = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(65), Constraint::Percentage(35)].as_ref())

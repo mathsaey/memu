@@ -91,7 +91,7 @@ impl Inner {
                 .split(frame.size());
 
             draw_log(log_buffer, &mut frame, chunks[1]);
-            emulator.draw(&mut frame, chunks[0]);
+            emulator.draw_debug(&mut frame, chunks[0]);
         })?;
         Ok(())
     }
