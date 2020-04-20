@@ -51,6 +51,28 @@ pub fn ld_6xkk(e: &mut Chip8, o: Operands) {
     }
 }
 
+pub fn ld_annn(e: &mut Chip8, o: Operands) {
+    if let Operands::Address(a) = o {
+        e.reg_i = a;
+    }
+}
+
+pub fn ld_fx55(e: &mut Chip8, o: Operands) {
+    if let Operands::Reg(r) = o {
+        for ctr in 0..(r + 1) {
+            e.mem[(e.reg_i + ctr as u16) as usize] = e.regs[ctr as usize];
+        }
+    }
+}
+
+pub fn ld_fx65(e: &mut Chip8, o: Operands) {
+    if let Operands::Reg(r) = o {
+        for ctr in 0..(r + 1) {
+            e.regs[ctr as usize] = e.mem[(e.reg_i + ctr as u16) as usize];
+        }
+    }
+}
+
 // ------------------ //
 // Formatting Support //
 // ------------------ //
