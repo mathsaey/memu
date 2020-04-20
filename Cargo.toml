@@ -6,6 +6,10 @@ edition = "2018"
 description = "Toy emulators written in Rust"
 
 [dependencies]
+# Command line parsing
+structopt = "0.3"
+# Window
+# minifb = "0.16"
 # Logging
 flexi_logger = "0.15"
 log = "0.4"

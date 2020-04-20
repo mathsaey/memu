@@ -5,15 +5,49 @@ mod logger;
 // Emulators
 mod chip8;
 
-use debug_view::{DebugView, Frame, Rect};
-
-use std::error::Error;
-use std::fs;
 use log::*;
 
-pub enum EmulatorKind {
-    Chip8,
+use structopt::StructOpt;
+use structopt::clap::arg_enum;
+
+use std::fs;
+use std::error::Error;
+
+use debug_view::{DebugView, Frame, Rect};
+
+// ------------- //
+// Configuration //
+// ------------- //
+
+#[derive(StructOpt)]
+#[structopt(name = "memu")]
+pub struct Conf {
+    /// Show the current state of the emulator in the console
+    #[structopt(short = "D", long)]
+    debug_view: bool,
+    #[structopt(
+        short, long, case_insensitive = true, hide_default_value = true,
+        possible_values= &["trace", "debug", "info", "warn", "error", "off"],
+        default_value="warn", default_value_if("debug-view", None, "trace"),
+    )]
+    /// The log level to use. Defaults to `trace` if `--debug_view` is set, to warn otherwise
+    log_level: LevelFilter,
+    #[structopt(possible_values = &EmulatorKind::variants(), case_insensitive = true)]
+    /// Emulator to use
+    emulator: EmulatorKind,
+    /// Path to the rom to emulate
+    rom_path: String,
 }
+
+arg_enum! {
+    pub enum EmulatorKind {
+        Chip8,
+    }
+}
+
+// -------------- //
+// Emulator Trait //
+// -------------- //
 
 pub trait Emulator {
     fn clock_rate(&self) -> usize;
@@ -33,79 +67,51 @@ pub trait Emulator {
     }
 }
 
-pub struct Conf {
-    debug_view: bool,
-    rom_path: String,
-    emulator: EmulatorKind,
+// -------------------- //
+// Initialisation Logic //
+// -------------------- //
+
+fn init_emulator(conf: &Conf) -> Result<Box<dyn Emulator>, Box<dyn Error>> {
+    let mut emulator = match conf.emulator {
+        EmulatorKind::Chip8 => Box::new(crate::chip8::Chip8::new()),
+    };
+
+    info!("Loading rom: `{}`", &conf.rom_path);
+    let rom = fs::read(&conf.rom_path)?;
+    emulator.load_rom(rom);
+
+    Ok(emulator)
 }
 
-struct State {
-    emulator: Box<dyn Emulator>,
-    debug_view: DebugView,
-}
-
-// -------------- //
-// Initialisation //
-// -------------- //
-
-impl Conf {
-    pub fn new(emulator: EmulatorKind, rom_path: String, debug_view: bool) -> Conf {
-        Conf {
-            debug_view,
-            rom_path,
-            emulator,
-        }
-    }
-
-    fn init_emulator(&self) -> Result<Box<dyn Emulator>, Box<dyn Error>> {
-        let mut emulator = match self.emulator {
-            EmulatorKind::Chip8 => Box::new(chip8::Chip8::new()),
-        };
-
-        info!("Loading rom: `{}`", self.rom_path);
-        let rom = fs::read(&self.rom_path)?;
-        emulator.load_rom(rom);
-
-        Ok(emulator)
-    }
-
-    fn to_state(self) -> Result<State, Box<dyn Error>> {
-        let debug_view = DebugView::new(self.debug_view)?;
-        logger::setup(&debug_view)?;
-
-        let emulator = self.init_emulator()?;
-        Ok(State {
-            emulator,
-            debug_view,
-        })
-    }
-}
-
-// ------------------- //
-// Program Entry Point //
-// ------------------- //
+// ---- //
+// Main //
+// ---- //
 
 use crossterm::event::{Event, KeyCode, KeyEvent};
 
 pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
-    let mut state = conf.to_state()?;
-    state.debug_view.draw(&state.emulator)?;
+    let mut debug_view = DebugView::new(conf.debug_view)?;
+    logger::setup(&conf, &debug_view)?;
+
+    let mut emulator = init_emulator(&conf)?;
+
+    debug_view.draw(&emulator)?;
 
     loop {
-        let event = state.debug_view.wait_for_key()?;
+        let event = debug_view.wait_for_key()?;
         match event {
             Event::Key(KeyEvent {
                 code: KeyCode::Char(' '),
                 modifiers: _,
             }) => {
-                state.emulator.cycle();
-                state.debug_view.draw(&state.emulator)?;
+                emulator.cycle();
+                debug_view.draw(&emulator)?;
             }
             Event::Key(KeyEvent {
                 code: KeyCode::Char('q'),
                 modifiers: _,
             }) => break,
-            Event::Resize(_, _) => state.debug_view.draw(&state.emulator)?,
+            Event::Resize(_, _) => debug_view.draw(&emulator)?,
             _ => continue,
         }
     }
