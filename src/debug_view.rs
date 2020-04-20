@@ -1,8 +1,8 @@
+use std::collections::VecDeque;
 use std::error::Error;
 use std::sync::{Arc, Mutex};
-use std::collections::VecDeque;
 
-use std::io::{stdout, Write, Stdout};
+use std::io::{stdout, Stdout, Write};
 
 use crossterm::event::{read, Event};
 use crossterm::{execute, terminal};

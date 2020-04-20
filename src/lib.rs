@@ -7,11 +7,11 @@ mod chip8;
 
 use log::*;
 
-use structopt::StructOpt;
 use structopt::clap::arg_enum;
+use structopt::StructOpt;
 
-use std::fs;
 use std::error::Error;
+use std::fs;
 
 use debug_view::{DebugView, Frame, Rect};
 

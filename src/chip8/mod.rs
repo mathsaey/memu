@@ -27,7 +27,7 @@ pub struct Chip8 {
     reg_dt: u8,            // Delay timer
     reg_st: u8,            // Sound timer
     // Graphics
-    screen: Vec<u32>       // Screen
+    screen: Vec<u32>, // Screen
 }
 
 impl crate::Emulator for Chip8 {
@@ -74,7 +74,7 @@ impl Chip8 {
             reg_pc: 0x200, // Programs start at 0x200
             reg_dt: 0x00,
             reg_st: 0x00,
-            screen: vec![0x0; width * height]
+            screen: vec![0x0; width * height],
         }
     }
 
@@ -138,28 +138,41 @@ fn draw_instructions(state: &Chip8, frame: &mut Frame, rect: Rect) {
             Operands::Empty => vec![a, c, n],
             Operands::Address(addr) => vec![a, c, n, format!("${:#03X}", addr)],
             Operands::Reg(reg) => vec![a, c, n, format!("v{:X}", reg)],
-            Operands::Regs(regx, regy) => vec![a, c, n, format!("v{:X}", regx), format!("v{:X}", regy)],
-            Operands::RegAndConst(reg, cnst) => vec![a, c, n, format!("v{:X}", reg), format!("{:#04X}", cnst)],
-            Operands::RegsAndConst(regx, regy, cnst) => 
-                vec![a, c, n, format!("v{:X}", regx), format!("v{:X}", regy), format!("{:#03X}", cnst)],
+            Operands::Regs(regx, regy) => {
+                vec![a, c, n, format!("v{:X}", regx), format!("v{:X}", regy)]
+            }
+            Operands::RegAndConst(reg, cnst) => {
+                vec![a, c, n, format!("v{:X}", reg), format!("{:#04X}", cnst)]
+            }
+            Operands::RegsAndConst(regx, regy, cnst) => vec![
+                a,
+                c,
+                n,
+                format!("v{:X}", regx),
+                format!("v{:X}", regy),
+                format!("{:#03X}", cnst),
+            ],
         };
 
         Row::Data(v.into_iter())
     });
 
-    let tab = Table::new(["Addr", "Code", "Op", "a1", "a2", "a3"].iter(), instructions)
-        .block(Block::default().title("Instructions").borders(Borders::ALL))
-        .widths(&[
-            Constraint::Length(7),
-            Constraint::Length(7),
-            Constraint::Length(5),
-            Constraint::Length(6),
-            Constraint::Length(6),
-            Constraint::Length(6),
-        ])
-        .header_style(Style::default().fg(Color::Gray))
-        .header_gap(0)
-        .style(Style::default().fg(Color::White));
+    let tab = Table::new(
+        ["Addr", "Code", "Op", "a1", "a2", "a3"].iter(),
+        instructions,
+    )
+    .block(Block::default().title("Instructions").borders(Borders::ALL))
+    .widths(&[
+        Constraint::Length(7),
+        Constraint::Length(7),
+        Constraint::Length(5),
+        Constraint::Length(6),
+        Constraint::Length(6),
+        Constraint::Length(6),
+    ])
+    .header_style(Style::default().fg(Color::Gray))
+    .header_gap(0)
+    .style(Style::default().fg(Color::White));
 
     frame.render_widget(tab, rect);
 }
