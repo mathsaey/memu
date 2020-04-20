@@ -46,10 +46,11 @@ impl crate::Emulator for Chip8 {
     }
 
     fn cycle(&mut self) -> bool {
-        let opcode = self.fetch();
-        let instruction = opcode.decode();
-        trace!("Decoded `{:#06X}` into `{}`", opcode, instruction);
-        instruction.exec(self);
+        self
+            .fetch()
+            .decode()
+            .exec(self);
+
         false
     }
 

@@ -201,6 +201,7 @@ impl OpCode {
                 Instruction::create(self, "???", Operands::Empty, instruction::not_implemented)
             }
         };
+        trace!("Decoded `{:#06X}` into `{}`", self, ins);
         ins
     }
 }
