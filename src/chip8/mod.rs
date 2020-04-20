@@ -131,29 +131,31 @@ fn draw_instructions(state: &Chip8, frame: &mut Frame, rect: Rect) {
         let instruction = state.get_opcode(addr).decode();
 
         let a = format!("${:#05X}", addr);
+        let c = format!("({:04X})", instruction.code);
         let n = String::from(instruction.name);
 
         let v = match instruction.operands {
-            Operands::Empty => vec![a, n],
-            Operands::Address(addr) => vec![a, n, format!("${:#03X}", addr)],
-            Operands::Reg(reg) => vec![a, n, format!("v{:X}", reg)],
-            Operands::Regs(regx, regy) => vec![a, n, format!("v{:X}", regx), format!("v{:X}", regy)],
-            Operands::RegAndConst(reg, cnst) => vec![a, n, format!("v{:X}", reg), format!("{:#04X}", cnst)],
+            Operands::Empty => vec![a, c, n],
+            Operands::Address(addr) => vec![a, c, n, format!("${:#03X}", addr)],
+            Operands::Reg(reg) => vec![a, c, n, format!("v{:X}", reg)],
+            Operands::Regs(regx, regy) => vec![a, c, n, format!("v{:X}", regx), format!("v{:X}", regy)],
+            Operands::RegAndConst(reg, cnst) => vec![a, c, n, format!("v{:X}", reg), format!("{:#04X}", cnst)],
             Operands::RegsAndConst(regx, regy, cnst) => 
-                vec![a, n, format!("v{:X}", regx), format!("v{:X}", regy), format!("{:#03X}", cnst)],
+                vec![a, c, n, format!("v{:X}", regx), format!("v{:X}", regy), format!("{:#03X}", cnst)],
         };
 
         Row::Data(v.into_iter())
     });
 
-    let tab = Table::new(["Addr", "Op", "a1", "a2", "a3"].iter(), instructions)
+    let tab = Table::new(["Addr", "Code", "Op", "a1", "a2", "a3"].iter(), instructions)
         .block(Block::default().title("Instructions").borders(Borders::ALL))
         .widths(&[
-            Constraint::Length(8),
-            Constraint::Length(8),
-            Constraint::Length(8),
-            Constraint::Length(8),
-            Constraint::Length(8),
+            Constraint::Length(7),
+            Constraint::Length(7),
+            Constraint::Length(5),
+            Constraint::Length(6),
+            Constraint::Length(6),
+            Constraint::Length(6),
         ])
         .header_style(Style::default().fg(Color::Gray))
         .header_gap(0)

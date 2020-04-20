@@ -1,21 +1,23 @@
 use log::*;
 use std::fmt;
 
-use super::opcode::Operands;
+use super::opcode::{OpCode, Operands};
 use super::Chip8;
 
 pub type InsFn = fn(&mut Chip8, Operands);
 pub type InsName = &'static str;
 
 pub struct Instruction {
+    pub code: OpCode,
     pub name: InsName,
     pub operands: Operands,
     pub instruction: InsFn,
 }
 
 impl Instruction {
-    pub fn create(n: InsName, o: Operands, i: InsFn) -> Instruction {
+    pub fn create(code: OpCode, n: InsName, o: Operands, i: InsFn) -> Instruction {
         Instruction {
+            code,
             name: n,
             operands: o,
             instruction: i,
