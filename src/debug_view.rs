@@ -2,6 +2,8 @@ use std::collections::VecDeque;
 use std::error::Error;
 use std::sync::{Arc, Mutex};
 
+use flexi_logger::ReconfigurationHandle;
+
 use std::io::{stdout, Stdout, Write};
 
 use crossterm::event::{read, Event};
@@ -13,6 +15,7 @@ use tui::style::*;
 use tui::widgets::*;
 
 use super::Emulator;
+use super::logger;
 
 type Backend = CrosstermBackend<Stdout>;
 type Terminal = tui::Terminal<Backend>;
@@ -29,6 +32,7 @@ pub struct DebugView(Option<Inner>);
 struct Inner {
     terminal: Terminal,
     log_wrapper: LogWrapper,
+    log_handle: Option<ReconfigurationHandle>
 }
 
 impl DebugView {
@@ -43,6 +47,12 @@ impl DebugView {
 
     pub fn log_writer(&self) -> Option<Box<LogWrapper>> {
         self.0.as_ref().map(|inner| inner.logbox())
+    }
+
+    pub fn log_handle(&mut self, handle: ReconfigurationHandle) {
+        if let Some(inner) = self.0.as_mut() {
+            inner.log_handle = Some(handle);
+        }
     }
 
     pub fn draw(&mut self, emulator: &Box<dyn Emulator>) -> Result<(), Box<dyn Error>> {
@@ -74,6 +84,7 @@ impl Inner {
         Ok(Inner {
             terminal,
             log_wrapper,
+            log_handle: None
         })
     }
 
@@ -84,6 +95,9 @@ impl Inner {
 
     #[inline]
     fn draw(&mut self, emulator: &Box<dyn Emulator>) -> Result<(), Box<dyn Error>> {
+        // Disable logging while we draw the view
+        logger::disable(self.log_handle.as_mut().unwrap());
+
         let log_buffer = self.log_wrapper.buffer.clone();
 
         self.terminal.draw(|mut frame| {
@@ -95,6 +109,8 @@ impl Inner {
             draw_log(log_buffer, &mut frame, chunks[1]);
             emulator.draw_debug(&mut frame, chunks[0]);
         })?;
+
+        logger::enable(self.log_handle.as_mut().unwrap());
         Ok(())
     }
 }
@@ -113,7 +129,7 @@ impl Drop for Inner {
 use flexi_logger::writers::LogWriter;
 use flexi_logger::{DeferredNow, FormatFunction, Level, Record};
 
-const LOG_CAP: usize = 5;
+const LOG_CAP: usize = 8;
 
 type LogBuffer = Arc<Mutex<VecDeque<(String, Style)>>>;
 

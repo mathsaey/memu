@@ -1,11 +1,11 @@
-use flexi_logger::{style, DeferredNow, LogSpecBuilder, LogTarget, Logger};
+use flexi_logger::{style, DeferredNow, LogSpecBuilder, LogTarget, Logger, ReconfigurationHandle};
 use log::{LevelFilter, Record};
 use std::error::Error;
 
 use super::debug_view::DebugView;
 use super::Conf;
 
-pub fn setup(conf: &Conf, debug_view: &DebugView) -> Result<(), Box<dyn Error>> {
+pub fn setup(conf: &Conf, debug_view: &mut DebugView) -> Result<(), Box<dyn Error>> {
     let mut builder = LogSpecBuilder::new();
     builder
         .default(LevelFilter::Warn)
@@ -22,8 +22,19 @@ pub fn setup(conf: &Conf, debug_view: &DebugView) -> Result<(), Box<dyn Error>> 
         None => logger,
     };
 
-    logger.start()?;
+    let handle = logger.start()?;
+    debug_view.log_handle(handle);
     Ok(())
+}
+
+pub fn disable(handle: &mut ReconfigurationHandle) {
+    let mut builder = LogSpecBuilder::new();
+    builder.module("memu", LevelFilter::Error);
+    handle.push_temp_spec(builder.build());
+}
+
+pub fn enable(handle: &mut ReconfigurationHandle) {
+    handle.pop_temp_spec();
 }
 
 fn padded_colored_format(

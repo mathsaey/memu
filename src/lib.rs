@@ -91,7 +91,7 @@ use crossterm::event::{Event, KeyCode, KeyEvent};
 
 pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
     let mut debug_view = DebugView::new(conf.debug_view)?;
-    logger::setup(&conf, &debug_view)?;
+    logger::setup(&conf, &mut debug_view)?;
 
     let mut emulator = init_emulator(&conf)?;
 
