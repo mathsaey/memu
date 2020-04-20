@@ -13,14 +13,20 @@ Ideally, some of the abstractions created for this purpose can be reused for a f
 Since I am using this code mainly as a way to mess around with Rust do not expect idiomatic code here.
 Do expect a lot of overengineering as I figure out what I can and cannot do with Rust.
 
+Details about the various emulators can be found in `src/<name of emulator>`.
+
 ## Installation and Use
 
-Simply build and install with cargo:
+Use `cargo` to fetch dependencies and build the application:
 
 - `cargo build`
-- `cargo run`
 
-If you actually want to use this to play games, use the `--release` flag when building memu.
+Afterwards, run the generated binary, pass the `--help` switch to find out the available options:
+
+- `cargo run -- --help`
+
+For more serious use, install the generated binary somewhere, so you don't always need to use `cargo run -- …` to run the application.
+If you want to actually use this to play games, be sure to build in `release`: `cargo build --release`.
 
 # (Non) Goals
 
@@ -37,12 +43,3 @@ For the same reason I am not focusing on the following requirements:
 - Perfect emulation
 - Hyper-optimized code
 
-# Resources
-
-I model the chip-8 instruction set based on the following resources:
-
-- References
-  - http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
-  - https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Technical-Reference
-- Roms
-  - https://github.com/dmatlack/chip8/tree/master/roms
