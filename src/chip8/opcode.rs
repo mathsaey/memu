@@ -215,22 +215,22 @@ fn decode_addr(op: OpCode) -> Operands {
 }
 
 fn decode_reg(op: OpCode) -> Operands {
-    Operands::Reg((op.0 & 0x0F00 >> 8) as u8)
+    Operands::Reg(((op.0 & 0x0F00) >> 8) as u8)
 }
 
 fn decode_regs(op: OpCode) -> Operands {
-    Operands::Regs((op.0 & 0x0F00 >> 8) as u8, (op.0 & 0x00F0 >> 4) as u8)
+    Operands::Regs(((op.0 & 0x0F00) >> 8) as u8, ((op.0 & 0x00F0) >> 4) as u8)
 }
 
 fn decode_reg_const(op: OpCode) -> Operands {
-    Operands::RegAndConst((op.0 & 0x0F00 >> 8) as u8, (op.0 & 0x00FF) as u8)
+    Operands::RegAndConst(((op.0 & 0x0F00) >> 8) as u8, (op.0 & 0x00FF) as u8)
 }
 
 fn decode_regs_const(op: OpCode) -> Operands {
     Operands::RegsAndConst(
-        (op.0 & 0x0F00 >> 8) as u8,
-        (op.0 & 0x00F0 >> 4) as u8,
-        (op.0 & 0x000F >> 0) as u8,
+        ((op.0 & 0x0F00) >> 8) as u8,
+        ((op.0 & 0x00F0) >> 4) as u8,
+        ((op.0 & 0x000F) >> 0) as u8,
     )
 }
 
