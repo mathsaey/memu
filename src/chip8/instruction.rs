@@ -79,6 +79,6 @@ pub fn ld_fx65(e: &mut Chip8, o: Operands) {
 
 impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:<4}\t{:}", self.name, self.operands)
+        write!(f, "({:04X}) {:<4}\t{:}", self.code, self.name, self.operands)
     }
 }
