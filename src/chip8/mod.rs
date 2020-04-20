@@ -4,7 +4,7 @@ mod opcode;
 use log::*;
 
 use super::debug_view::{Frame, Rect};
-use opcode::OpCode;
+use opcode::{OpCode, Operands};
 
 // TODO:
 //  - move stack to separate module, push & pop
@@ -130,22 +130,30 @@ fn draw_instructions(state: &Chip8, frame: &mut Frame, rect: Rect) {
         let addr = state.reg_pc + (i * 2);
         let instruction = state.get_opcode(addr).decode();
 
-        Row::Data(
-            vec![
-                format!("${:#05X}", addr),
-                String::from(instruction.name),
-                format!("{}", instruction.operands),
-            ]
-            .into_iter(),
-        )
+        let a = format!("${:#05X}", addr);
+        let n = String::from(instruction.name);
+
+        let v = match instruction.operands {
+            Operands::Empty => vec![a, n],
+            Operands::Address(addr) => vec![a, n, format!("${:#03X}", addr)],
+            Operands::Reg(reg) => vec![a, n, format!("v{:X}", reg)],
+            Operands::Regs(regx, regy) => vec![a, n, format!("v{:X}", regx), format!("v{:X}", regy)],
+            Operands::RegAndConst(reg, cnst) => vec![a, n, format!("v{:X}", reg), format!("{:#04X}", cnst)],
+            Operands::RegsAndConst(regx, regy, cnst) => 
+                vec![a, n, format!("v{:X}", regx), format!("v{:X}", regy), format!("{:#03X}", cnst)],
+        };
+
+        Row::Data(v.into_iter())
     });
 
-    let tab = Table::new(["Addr", "Op", "Args"].iter(), instructions)
+    let tab = Table::new(["Addr", "Op", "a1", "a2", "a3"].iter(), instructions)
         .block(Block::default().title("Instructions").borders(Borders::ALL))
         .widths(&[
             Constraint::Length(8),
-            Constraint::Length(6),
-            Constraint::Length(10),
+            Constraint::Length(8),
+            Constraint::Length(8),
+            Constraint::Length(8),
+            Constraint::Length(8),
         ])
         .header_style(Style::default().fg(Color::Gray))
         .header_gap(0)
