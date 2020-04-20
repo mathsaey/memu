@@ -78,18 +78,18 @@ impl OpCode {
             }
             // 6xkk
             (6, _, _, _) => {
-                Instruction::create(self, "LDc", decode_reg_const(self), instruction::ld_6xkk)
+                Instruction::create(self, "LDcn", decode_reg_const(self), instruction::ld_6xkk)
             }
             // 7xkk
             (7, _, _, _) => Instruction::create(
                 self,
                 "ADD",
                 decode_reg_const(self),
-                instruction::not_implemented,
+                instruction::add_7xkk,
             ),
             // 8xy0
             (8, _, _, 0) => {
-                Instruction::create(self, "LD", decode_regs(self), instruction::not_implemented)
+                Instruction::create(self, "LDcp", decode_regs(self), instruction::ld_8xy0)
             }
             // 8xy1
             (8, _, _, 1) => {
@@ -105,7 +105,7 @@ impl OpCode {
             }
             // 8xy4
             (8, _, _, 4) => {
-                Instruction::create(self, "ADD", decode_regs(self), instruction::not_implemented)
+                Instruction::create(self, "ADD", decode_regs(self), instruction::add_8xy4)
             }
             // 8xy5
             (8, _, _, 5) => {
