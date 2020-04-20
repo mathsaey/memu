@@ -30,7 +30,7 @@ pub struct Conf {
         possible_values= &["trace", "debug", "info", "warn", "error", "off"],
         default_value="warn", default_value_if("debug-view", None, "trace"),
     )]
-    /// The log level to use. Defaults to `trace` if `--debug_view` is set, to warn otherwise
+    /// The log level to use. Defaults to `trace` if `--debug_view` is set, or `warn` otherwise
     log_level: LevelFilter,
     #[structopt(possible_values = &EmulatorKind::variants(), case_insensitive = true)]
     /// Emulator to use
