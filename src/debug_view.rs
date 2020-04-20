@@ -1,10 +1,11 @@
-use std::collections::VecDeque;
 use std::error::Error;
-use std::io;
 use std::sync::{Arc, Mutex};
+use std::collections::VecDeque;
+
+use std::io::{stdout, Write, Stdout};
 
 use crossterm::event::{read, Event};
-use crossterm::terminal;
+use crossterm::{execute, terminal};
 
 use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Direction, Layout};
@@ -13,7 +14,7 @@ use tui::widgets::*;
 
 use super::Emulator;
 
-type Backend = CrosstermBackend<io::Stdout>;
+type Backend = CrosstermBackend<Stdout>;
 type Terminal = tui::Terminal<Backend>;
 
 // Types for types that implement View
@@ -60,10 +61,11 @@ impl DebugView {
 impl Inner {
     #[inline]
     fn new() -> Result<Inner, Box<dyn Error>> {
-        let backend = CrosstermBackend::new(io::stdout());
+        let backend = CrosstermBackend::new(stdout());
         let mut terminal = Terminal::new(backend)?;
         let log_wrapper = LogWrapper::new();
 
+        execute!(stdout(), terminal::EnterAlternateScreen)?;
         terminal::enable_raw_mode()?;
 
         terminal.clear()?;
@@ -100,6 +102,7 @@ impl Inner {
 impl Drop for Inner {
     fn drop(&mut self) {
         terminal::disable_raw_mode().unwrap();
+        execute!(stdout(), terminal::LeaveAlternateScreen).unwrap();
     }
 }
 
