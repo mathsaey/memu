@@ -93,15 +93,15 @@ impl OpCode {
             }
             // 8xy1
             (8, _, _, 1) => {
-                Instruction::create(self, "OR", decode_regs(self), instruction::not_implemented)
+                Instruction::create(self, "OR", decode_regs(self), instruction::or_8xy1)
             }
             // 8xy2
             (8, _, _, 2) => {
-                Instruction::create(self, "AND", decode_regs(self), instruction::not_implemented)
+                Instruction::create(self, "AND", decode_regs(self), instruction::and_8xy2)
             }
             // 8xy3
             (8, _, _, 3) => {
-                Instruction::create(self, "XOR", decode_regs(self), instruction::not_implemented)
+                Instruction::create(self, "XOR", decode_regs(self), instruction::xor_8xy3)
             }
             // 8xy4
             (8, _, _, 4) => {

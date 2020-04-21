@@ -39,12 +39,23 @@ pub fn not_implemented(_: &mut Chip8, _: Operands) {
     warn!("Ignoring unimplemented opcode");
 }
 
-// Register Operations
-// -------------------
+pub fn jp_1nnn(e: &mut Chip8, o: Operands) {
+    if let Operands::Address(a) = o {
+        e.reg_pc = a;
+    }
+}
 
 pub fn ld_6xkk(e: &mut Chip8, o: Operands) {
     if let Operands::RegAndConst(r, cns) = o {
         e.regs[r as usize] = cns;
+    }
+}
+
+pub fn add_7xkk(e: &mut Chip8, o: Operands) {
+    if let Operands::RegAndConst(r, k) = o {
+        let res = (e.regs[r as usize] as u16) + (k as u16);
+        // Flag is not set if overflow occurs
+        e.regs[r as usize] = (res & 0x00FF) as u8;
     }
 }
 
@@ -54,12 +65,21 @@ pub fn ld_8xy0(e: &mut Chip8, o: Operands) {
     }
 }
 
-// Arithmetic
-pub fn add_7xkk(e: &mut Chip8, o: Operands) {
-    if let Operands::RegAndConst(r, k) = o {
-        let res = (e.regs[r as usize] as u16) + (k as u16);
-        // Flag is not set if overflow occurs
-        e.regs[r as usize] = (res & 0x00FF) as u8;
+pub fn or_8xy1(e: &mut Chip8, o: Operands) {
+    if let Operands::Regs(x, y) = o {
+        e.regs[x as usize] |= e.regs[y as usize];
+    }
+}
+
+pub fn and_8xy2(e: &mut Chip8, o: Operands) {
+    if let Operands::Regs(x, y) = o {
+        e.regs[x as usize] &= e.regs[y as usize];
+    }
+}
+
+pub fn xor_8xy3(e: &mut Chip8, o: Operands) {
+    if let Operands::Regs(x, y) = o {
+        e.regs[x as usize] ^= e.regs[y as usize];
     }
 }
 
@@ -72,12 +92,6 @@ pub fn add_8xy4(e: &mut Chip8, o: Operands) {
             e.regs[0xF] = 0
         }
         e.regs[x as usize] = (res & 0x00FF) as u8;
-    }
-}
-
-pub fn jp_1nnn(e: &mut Chip8, o: Operands) {
-    if let Operands::Address(a) = o {
-        e.reg_pc = a;
     }
 }
 
