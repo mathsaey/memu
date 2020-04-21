@@ -78,7 +78,7 @@ impl OpCode {
             }
             // 6xkk
             (6, _, _, _) => {
-                Instruction::create(self, "LDcn", decode_reg_const(self), instruction::ld_6xkk)
+                Instruction::create(self, "LD", decode_reg_const(self), instruction::ld_6xkk)
             }
             // 7xkk
             (7, _, _, _) => Instruction::create(
@@ -89,7 +89,7 @@ impl OpCode {
             ),
             // 8xy0
             (8, _, _, 0) => {
-                Instruction::create(self, "LDcp", decode_regs(self), instruction::ld_8xy0)
+                Instruction::create(self, "LD", decode_regs(self), instruction::ld_8xy0)
             }
             // 8xy1
             (8, _, _, 1) => {
@@ -132,7 +132,7 @@ impl OpCode {
             }
             // Annn
             (0xA, _, _, _) => {
-                Instruction::create(self, "LDa", decode_addr(self), instruction::ld_annn)
+                Instruction::create(self, "LD", decode_addr(self), instruction::ld_annn)
             }
             // Bnnn
             (0xB, _, _, _) => {
@@ -190,11 +190,11 @@ impl OpCode {
             }
             // Fx55
             (0xF, _, 5, 5) => {
-                Instruction::create(self, "LDr", decode_reg(self), instruction::ld_fx55)
+                Instruction::create(self, "LD", decode_reg(self), instruction::ld_fx55)
             }
             // Fx65
             (0xF, _, 6, 5) => {
-                Instruction::create(self, "LDw", decode_reg(self), instruction::ld_fx65)
+                Instruction::create(self, "LD", decode_reg(self), instruction::ld_fx65)
             }
             _ => {
                 warn!("Failed to decode: `{:#06X}`", self);

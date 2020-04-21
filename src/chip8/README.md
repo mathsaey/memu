@@ -3,7 +3,6 @@
 # Notes
 
 - The operation names in the log output and debug views are based on the [cowgod reference](devernay.free.fr/hacks/chip8/C8TECH10.HTM).
-  Occasionally, I added an extra character to the name to make different variants of the same instruction more distinct.
 
 # Resources
 
