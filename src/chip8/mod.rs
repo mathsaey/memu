@@ -51,7 +51,7 @@ impl crate::Emulator for Chip8 {
             .decode()
             .exec(self);
 
-        false
+        true // TODO: Don't always update later...
     }
 
     fn screen_buffer(&self) -> &[u32] {
@@ -67,7 +67,7 @@ impl Chip8 {
     pub fn new() -> Chip8 {
         let (width, height) = SCREEN;
 
-        Chip8 {
+        let mut res = Chip8 {
             mem: [0x00; MEM_SIZE],
             stack: [0x00; STACK_SIZE],
             regs: [0x00; GP_AMOUNT],
@@ -76,7 +76,10 @@ impl Chip8 {
             reg_dt: 0x00,
             reg_st: 0x00,
             screen: vec![0x0; width * height],
-        }
+        };
+
+        res.load_sprites();
+        res
     }
 
     fn fetch(&mut self) -> OpCode {
@@ -88,6 +91,35 @@ impl Chip8 {
 
     fn get_opcode(&self, idx: u16) -> OpCode {
         OpCode::from_cells(self.mem[idx as usize], self.mem[(idx + 1) as usize])
+    }
+
+    #[inline]
+    fn sprite_addr(&self, digit: u8) -> u16 {
+      0x00 + (digit * 5) as u16
+    }
+
+    fn load_sprite(&mut self, digit: u8, sprite: &[u8 ; 5]) {
+      let addr = self.sprite_addr(digit) as usize;
+      self.mem[addr..(addr + 5)].copy_from_slice(sprite);
+    }
+
+    fn load_sprites(&mut self) {
+      self.load_sprite(0x0, &[0xF0, 0x90, 0x90, 0x90, 0xF0]);
+      self.load_sprite(0x1, &[0x20, 0x60, 0x20, 0x20, 0x70]);
+      self.load_sprite(0x2, &[0xF0, 0x10, 0xF0, 0x80, 0xF0]);
+      self.load_sprite(0x3, &[0xF0, 0x10, 0xF0, 0x10, 0xF0]);
+      self.load_sprite(0x4, &[0x90, 0x90, 0xF0, 0x10, 0x10]);
+      self.load_sprite(0x5, &[0xF0, 0x80, 0xF0, 0x10, 0xF0]);
+      self.load_sprite(0x6, &[0xF0, 0x80, 0xF0, 0x90, 0xF0]);
+      self.load_sprite(0x7, &[0xF0, 0x10, 0x20, 0x40, 0x40]);
+      self.load_sprite(0x8, &[0xF0, 0x90, 0xF0, 0x90, 0xF0]);
+      self.load_sprite(0x9, &[0xF0, 0x90, 0xF0, 0x10, 0xF0]);
+      self.load_sprite(0xA, &[0xF0, 0x90, 0xF0, 0x90, 0x90]);
+      self.load_sprite(0xB, &[0xE0, 0x90, 0xE0, 0x90, 0xE0]);
+      self.load_sprite(0xC, &[0xF0, 0x80, 0x80, 0x80, 0xF0]);
+      self.load_sprite(0xD, &[0xE0, 0x90, 0x90, 0x90, 0xE0]);
+      self.load_sprite(0xE, &[0xF0, 0x80, 0xF0, 0x80, 0xF0]);
+      self.load_sprite(0xF, &[0xF0, 0x80, 0xF0, 0x80, 0x80]);
     }
 }
 
