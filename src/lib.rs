@@ -73,7 +73,7 @@ pub trait Emulator {
 
 fn init_emulator(conf: &Conf) -> Result<Box<dyn Emulator>, Box<dyn Error>> {
     let mut emulator = match conf.emulator {
-        EmulatorKind::Chip8 => Box::new(crate::chip8::Chip8::new()),
+        EmulatorKind::Chip8 => Box::new(chip8::Chip8::new()),
     };
 
     info!("Loading rom: `{}`", &conf.rom_path);
