@@ -1,6 +1,7 @@
 // Emulator-agnostic modules
 mod debug_view;
 mod logger;
+mod window;
 
 // Emulators
 mod chip8;
@@ -14,6 +15,7 @@ use std::error::Error;
 use std::fs;
 
 use debug_view::{DebugView, Frame, Rect};
+use window::Window;
 
 // ------------- //
 // Configuration //
@@ -51,11 +53,11 @@ arg_enum! {
 
 pub trait Emulator {
     fn clock_rate(&self) -> usize;
-    fn screen_dimensions(&self) -> (usize, usize);
 
     fn load_rom(&mut self, rom: Vec<u8>);
     fn cycle(&mut self) -> bool;
 
+    fn screen_dimensions(&self) -> (usize, usize);
     fn screen_buffer(&self) -> &[u32];
 
     fn draw_debug(&self, frame: &mut Frame, area: Rect) {
@@ -94,7 +96,9 @@ pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
     logger::setup(&conf, &mut debug_view)?;
 
     let mut emulator = init_emulator(&conf)?;
+    let mut window = Window::new(&conf, &emulator)?;
 
+    window.update(&emulator)?;
     debug_view.draw(&emulator)?;
 
     loop {
@@ -104,7 +108,9 @@ pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
                 code: KeyCode::Char(' '),
                 modifiers: _,
             }) => {
-                emulator.cycle();
+                if emulator.cycle() {
+                    window.update(&emulator)?;
+                }
                 debug_view.draw(&emulator)?;
             }
             Event::Key(KeyEvent {
