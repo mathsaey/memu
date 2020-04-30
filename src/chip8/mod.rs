@@ -289,7 +289,7 @@ fn draw_memory(state: &Chip8, frame: &mut Frame, rect: Rect) {
     }
 
     let rows = (0..(rect.height - 3)).map(move |row_idx| {
-        let start_addr = state.reg_i + (row_idx * 16);
+        let start_addr = state.reg_i - (state.reg_i % 0x10) + (row_idx * 16);
         let mut vec: Vec<String> = Vec::with_capacity(17);
         vec.push(format!("${:#06X}", start_addr));
 
