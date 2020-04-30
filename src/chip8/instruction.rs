@@ -40,6 +40,15 @@ pub fn not_implemented(_: &mut Chip8, _: Operands) -> bool {
     false
 }
 
+pub fn cls_00e0(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Empty = o {
+        for px in e.screen.iter_mut() {
+            *px = 0x00;
+        }
+    }
+    true
+}
+
 pub fn jp_1nnn(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Address(a) = o {
         e.reg_pc = a;

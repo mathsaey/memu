@@ -37,7 +37,7 @@ impl OpCode {
         let ins = match self.to_matchtup() {
             // 00E0
             (0, 0, 0xE, 0x0) => {
-                Instruction::create(self, "CLS", Operands::Empty, instruction::not_implemented)
+                Instruction::create(self, "CLS", Operands::Empty, instruction::cls_00e0)
             }
             // 00EE
             (0, 0, 0xE, 0xE) => {
