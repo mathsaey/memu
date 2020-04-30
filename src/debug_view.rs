@@ -16,6 +16,7 @@ use tui::widgets::*;
 
 use super::Emulator;
 use super::logger;
+use super::Conf;
 
 type Backend = CrosstermBackend<Stdout>;
 type Terminal = tui::Terminal<Backend>;
@@ -36,8 +37,8 @@ struct Inner {
 }
 
 impl DebugView {
-    pub fn new(enable: bool) -> Result<DebugView, Box<dyn Error>> {
-        if enable {
+    pub fn new(conf: &Conf) -> Result<DebugView, Box<dyn Error>> {
+        if conf.debug_view {
             let inner = Inner::new()?;
             Ok(DebugView(Some(inner)))
         } else {
