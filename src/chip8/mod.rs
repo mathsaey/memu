@@ -49,9 +49,7 @@ impl crate::Emulator for Chip8 {
         self
             .fetch()
             .decode()
-            .exec(self);
-
-        true // TODO: Don't always update later...
+            .exec(self)
     }
 
     fn screen_buffer(&self) -> &[u32] {

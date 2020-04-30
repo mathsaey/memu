@@ -182,7 +182,7 @@ impl OpCode {
             }
             // Fx29
             (0xF, _, 2, 9) => {
-                Instruction::create(self, "LD", decode_reg(self), instruction::not_implemented)
+                Instruction::create(self, "LD", decode_reg(self), instruction::ld_fx29)
             }
             // Fx33
             (0xF, _, 3, 3) => {
