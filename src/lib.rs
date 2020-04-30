@@ -1,7 +1,7 @@
 // Emulator-agnostic modules
 mod debug_view;
+mod display;
 mod logger;
-mod window;
 
 // Emulators
 mod chip8;
@@ -15,7 +15,7 @@ use std::error::Error;
 use std::fs;
 
 use debug_view::{DebugView, Frame, Rect};
-use window::Window;
+use display::Display;
 
 // ------------- //
 // Configuration //
@@ -96,9 +96,9 @@ pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
     logger::setup(&conf, &mut debug_view)?;
 
     let mut emulator = init_emulator(&conf)?;
-    let mut window = Window::new(&conf, &emulator)?;
+    let mut display = Display::new(&conf, &emulator)?;
 
-    window.update(&emulator)?;
+    display.update(&emulator)?;
     debug_view.draw(&emulator)?;
 
     loop {
@@ -109,7 +109,7 @@ pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
                 modifiers: _,
             }) => {
                 if emulator.cycle() {
-                    window.update(&emulator)?;
+                    display.update(&emulator)?;
                 }
                 debug_view.draw(&emulator)?;
             }
