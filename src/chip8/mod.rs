@@ -6,10 +6,6 @@ use log::*;
 use super::debug_view::{Frame, Rect};
 use opcode::{OpCode, Operands};
 
-// TODO:
-//  - move stack to separate module, push & pop
-//  - Or just use dequeue?
-
 const STACK_SIZE: usize = 16;
 const GP_AMOUNT: usize = 16;
 const MEM_SIZE: usize = 4 * 1024;
@@ -24,7 +20,7 @@ pub struct Chip8 {
     // Main Memory
     mem: [u8; MEM_SIZE],
     // Stack
-    stack: [u16; STACK_SIZE], // Stack to store program counter
+    stack: Vec<u16>, // Stack to store program counter
     // Registers
     regs: [u8; GP_AMOUNT], // General purpose, V0 to VF
     reg_i: u16,            // Address register
@@ -70,7 +66,7 @@ impl Chip8 {
     pub fn new() -> Chip8 {
         let mut res = Chip8 {
             mem: [0x00; MEM_SIZE],
-            stack: [0x00; STACK_SIZE],
+            stack: Vec::with_capacity(STACK_SIZE),
             regs: [0x00; GP_AMOUNT],
             reg_i: 0x000,
             reg_pc: 0x200, // Programs start at 0x200
@@ -259,7 +255,6 @@ fn draw_registers(state: &Chip8, frame: &mut Frame, rect: Rect) {
     frame.render_widget(par, rect);
 }
 
-// TODO: Make this better later when the stack pointer is implemented
 fn draw_stack(state: &Chip8, frame: &mut Frame, rect: Rect) {
     let mut slots: Vec<Text> = Vec::with_capacity(33);
 
