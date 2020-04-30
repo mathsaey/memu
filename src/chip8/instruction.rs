@@ -56,6 +56,15 @@ pub fn jp_1nnn(e: &mut Chip8, o: Operands) -> bool {
     false
 }
 
+pub fn sne_4xnn(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::RegAndConst(r, cns) = o {
+        if e.regs[r as usize] != cns {
+            e.pc_inc();
+        }
+    }
+    false
+}
+
 pub fn ld_6xkk(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::RegAndConst(r, cns) = o {
         e.regs[r as usize] = cns;

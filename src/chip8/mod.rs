@@ -80,10 +80,15 @@ impl Chip8 {
         res
     }
 
+    #[inline]
+    fn pc_inc(&mut self) {
+        self.reg_pc += 2;
+    }
+
     fn fetch(&mut self) -> OpCode {
         let code = self.get_opcode(self.reg_pc);
         trace!("Fetched `{:#06X}` from ${:#06X}", code, self.reg_pc);
-        self.reg_pc += 2;
+        self.pc_inc();
         code
     }
 

@@ -70,7 +70,7 @@ impl OpCode {
                 self,
                 "SNE",
                 decode_reg_const(self),
-                instruction::not_implemented,
+                instruction::sne_4xnn,
             ),
             // 5xy0
             (5, _, _, 0) => {
