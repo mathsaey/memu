@@ -178,7 +178,7 @@ impl OpCode {
             }
             // Fx1E
             (0xF, _, 1, 0xE) => {
-                Instruction::create(self, "ADD", decode_reg(self), instruction::not_implemented)
+                Instruction::create(self, "ADD", decode_reg(self), instruction::add_fx1e)
             }
             // Fx29
             (0xF, _, 2, 9) => {

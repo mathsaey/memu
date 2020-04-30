@@ -173,6 +173,13 @@ pub fn drw_dxyn(e: &mut Chip8, o: Operands) -> bool {
     true
 }
 
+pub fn add_fx1e(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Reg(r) = o {
+        e.reg_i += e.regs[r as usize] as u16;
+    }
+    false
+}
+
 pub fn ld_fx55(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
         for ctr in 0..(r + 1) {
