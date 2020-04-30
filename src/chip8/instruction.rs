@@ -43,7 +43,7 @@ pub fn not_implemented(_: &mut Chip8, _: Operands) -> bool {
 pub fn cls_00e0(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Empty = o {
         for px in e.screen.iter_mut() {
-            *px = 0x00;
+            *px = super::PX_UNS;
         }
     }
     true
@@ -57,8 +57,8 @@ pub fn jp_1nnn(e: &mut Chip8, o: Operands) -> bool {
 }
 
 pub fn sne_4xnn(e: &mut Chip8, o: Operands) -> bool {
-    if let Operands::RegAndConst(r, cns) = o {
-        if e.regs[r as usize] != cns {
+    if let Operands::RegAndConst(r, c) = o {
+        if e.regs[r as usize] != c {
             e.pc_inc();
         }
     }
@@ -66,8 +66,8 @@ pub fn sne_4xnn(e: &mut Chip8, o: Operands) -> bool {
 }
 
 pub fn ld_6xkk(e: &mut Chip8, o: Operands) -> bool {
-    if let Operands::RegAndConst(r, cns) = o {
-        e.regs[r as usize] = cns;
+    if let Operands::RegAndConst(r, c) = o {
+        e.regs[r as usize] = c;
     }
     false
 }
@@ -113,9 +113,9 @@ pub fn add_8xy4(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Regs(x, y) = o {
         let res = (e.regs[x as usize] as u16) + (e.regs[y as usize] as u16);
         if res > 255 {
-            e.regs[0xF] = 1
+            e.set_flag()
         } else {
-            e.regs[0xF] = 0
+            e.clear_flag()
         }
         e.regs[x as usize] = (res & 0x00FF) as u8;
     }
@@ -127,6 +127,50 @@ pub fn ld_annn(e: &mut Chip8, o: Operands) -> bool {
         e.reg_i = a;
     }
     false
+}
+
+pub fn drw_dxyn(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::RegsAndConst(x, y, c) = o {
+        // Reset flag register
+        e.clear_flag();
+
+        let mut collision = false;
+
+        // Fetch the sprite
+        let i = e.reg_i as usize;
+        let sprite = &e.mem[i .. i + c as usize];
+
+        // Feth the location to draw
+        let base_x = e.regs[x as usize];
+        let base_y = e.regs[y as usize];
+
+        // Iterate over every bit in the sprite, to chec if it is set
+        for (sprite_y, disp_y) in (base_y .. (base_y + c)).enumerate() {
+            for (sprite_x, disp_x) in (base_x .. (base_x + 8)).enumerate() {
+                if (sprite[sprite_y] & (0b10000000 >> sprite_x)) != 0 {
+
+                    // Drawing wraps around
+                    let y = disp_y as usize % super::HEIGHT;
+                    let x = disp_x as usize % super::WIDTH;
+                    let addr = y * super::WIDTH + x;
+
+                    // Collision check
+                    if e.screen[addr] == super::PX_SET {
+                        collision = true;
+                    }
+
+                    // Update the display
+                    e.screen[addr] ^= super::PX_SET;
+                }
+            }
+        }
+
+        // Need to do this out of the loop to make the borrow checker happy
+        if collision {
+            e.set_flag();
+        }
+    }
+    true
 }
 
 pub fn ld_fx55(e: &mut Chip8, o: Operands) -> bool {
@@ -151,7 +195,8 @@ pub fn ld_fx65(e: &mut Chip8, o: Operands) -> bool {
 
 pub fn ld_fx29(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
-        e.reg_i = e.sprite_addr(r);
+        let addr = e.regs[r as usize];
+        e.reg_i = e.sprite_addr(addr);
     }
     false
 }

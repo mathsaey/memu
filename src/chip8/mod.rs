@@ -13,7 +13,12 @@ use opcode::{OpCode, Operands};
 const STACK_SIZE: usize = 16;
 const GP_AMOUNT: usize = 16;
 const MEM_SIZE: usize = 4 * 1024;
-const SCREEN: (usize, usize) = (64, 32);
+
+const WIDTH: usize = 64;
+const HEIGHT: usize = 32;
+
+const PX_SET: u32 = super::display::Display::rgb(0xFF, 0xFF, 0xFF);
+const PX_UNS: u32 = super::display::Display::rgb(0x00, 0x00, 0x00);
 
 pub struct Chip8 {
     // Main Memory
@@ -36,7 +41,7 @@ impl crate::Emulator for Chip8 {
     }
 
     fn screen_dimensions(&self) -> (usize, usize) {
-        SCREEN
+        (WIDTH, HEIGHT)
     }
 
     fn load_rom(&mut self, content: Vec<u8>) {
@@ -63,8 +68,6 @@ impl crate::Emulator for Chip8 {
 
 impl Chip8 {
     pub fn new() -> Chip8 {
-        let (width, height) = SCREEN;
-
         let mut res = Chip8 {
             mem: [0x00; MEM_SIZE],
             stack: [0x00; STACK_SIZE],
@@ -73,7 +76,7 @@ impl Chip8 {
             reg_pc: 0x200, // Programs start at 0x200
             reg_dt: 0x00,
             reg_st: 0x00,
-            screen: vec![0x0; width * height],
+            screen: vec![0x0; WIDTH * HEIGHT],
         };
 
         res.load_sprites();
@@ -83,6 +86,16 @@ impl Chip8 {
     #[inline]
     fn pc_inc(&mut self) {
         self.reg_pc += 2;
+    }
+
+    #[inline]
+    fn clear_flag(&mut self) {
+        self.regs[0xF] = 0;
+    }
+
+    #[inline]
+    fn set_flag(&mut self) {
+        self.regs[0xF] = 1;
     }
 
     fn fetch(&mut self) -> OpCode {
@@ -98,7 +111,7 @@ impl Chip8 {
 
     #[inline]
     fn sprite_addr(&self, digit: u8) -> u16 {
-      0x00 + (digit * 5) as u16
+      (digit * 5) as u16
     }
 
     fn load_sprite(&mut self, digit: u8, sprite: &[u8 ; 5]) {

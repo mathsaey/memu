@@ -13,10 +13,10 @@ pub struct Display(Window);
 pub type Scale = minifb::Scale;
 
 impl Display {
-    pub fn new(_conf: &Conf, emulator: &Box<dyn Emulator>) -> Result<Display, Box<dyn Error>> {
+    pub fn new(conf: &Conf, emulator: &Box<dyn Emulator>) -> Result<Display, Box<dyn Error>> {
         let (width, height) = emulator.screen_dimensions();
-        let window = Window::new(
-            "memu",
+        let mut window = Window::new(
+            format!("memu ({}) - {}", conf.emulator, conf.rom_path).as_str(),
             width,
             height,
             WindowOptions{
@@ -25,6 +25,8 @@ impl Display {
                 ..WindowOptions::default()
             }
         ).unwrap();
+
+        window.limit_update_rate(None);
         Ok(Display(window))
     }
 
@@ -32,5 +34,10 @@ impl Display {
         let (width, height) = emulator.screen_dimensions();
         let _ = self.0.update_with_buffer(emulator.screen_buffer(), width, height).unwrap();
         Ok(())
+    }
+
+    pub const fn rgb(r: u8, g: u8, b: u8) -> u32 {
+        let (r, g, b) = (r as u32, g as u32, b as u32);
+        (r << 16) | (g << 8) | b
     }
 }

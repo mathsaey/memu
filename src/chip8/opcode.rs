@@ -150,7 +150,7 @@ impl OpCode {
                 self,
                 "DRW",
                 decode_regs_const(self),
-                instruction::not_implemented,
+                instruction::drw_dxyn,
             ),
             // Ex9E
             (0xE, _, 9, 0xE) => {
