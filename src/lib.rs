@@ -4,6 +4,7 @@ mod display;
 mod logger;
 
 // Emulators
+#[cfg(feature = "chip8")]
 mod chip8;
 
 use log::*;
@@ -12,6 +13,7 @@ use structopt::clap::arg_enum;
 use structopt::StructOpt;
 
 use std::error::Error;
+use std::fmt;
 use std::fs;
 
 use debug_view::{DebugView, Frame, Rect};
@@ -42,8 +44,28 @@ pub struct Conf {
 }
 
 arg_enum! {
+    #[derive(Debug, Clone, Copy)]
     pub enum EmulatorKind {
         Chip8,
+    }
+}
+
+// ------ //
+// Errors //
+// ------ //
+
+#[derive(Debug)]
+pub struct MissingFeatureError(String);
+
+impl fmt::Display for MissingFeatureError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Memu was built without {} support", self.0)
+    }
+}
+
+impl Error for MissingFeatureError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
     }
 }
 
@@ -60,6 +82,7 @@ pub trait Emulator {
     fn screen_dimensions(&self) -> (usize, usize);
     fn draw_screen(&self) -> &[u32];
 
+    #[cfg(feature = "debug-view")]
     fn draw_debug(&self, frame: &mut Frame, area: Rect) {
         let text = [tui::widgets::Text::raw("Debug view not implemented")];
         let par =
@@ -67,15 +90,28 @@ pub trait Emulator {
 
         frame.render_widget(par, area);
     }
+
+    #[cfg(not(feature = "debug-view"))]
+    fn draw_debug(&self, _frame: &mut Frame, _area: Rect) {
+    }
 }
 
 // -------------------- //
 // Initialisation Logic //
 // -------------------- //
 
+#[cfg(feature = "chip8")]
+fn init_chip8(_: EmulatorKind) -> Result<Box<dyn Emulator>, Box<dyn Error>> {
+    Ok(Box::new(chip8::Chip8::new()))
+}
+#[cfg(not(feature = "chip8"))]
+fn init_chip8(kind: EmulatorKind) -> Result<Box<dyn Emulator>, Box<dyn Error>> {
+    Err(Box::new(MissingFeatureError(kind.to_string())))
+}
+
 fn init_emulator(conf: &Conf) -> Result<Box<dyn Emulator>, Box<dyn Error>> {
     let mut emulator = match conf.emulator {
-        EmulatorKind::Chip8 => Box::new(chip8::Chip8::new()),
+        EmulatorKind::Chip8 => init_chip8(conf.emulator)?,
     };
 
     info!("Loading rom: `{}`", &conf.rom_path);

@@ -14,9 +14,9 @@ use tui::layout::{Constraint, Direction, Layout};
 use tui::style::*;
 use tui::widgets::*;
 
-use super::logger;
-use super::Conf;
-use super::Emulator;
+use crate::Conf;
+use crate::logger;
+use crate::Emulator;
 
 type Backend = CrosstermBackend<Stdout>;
 type Terminal = tui::Terminal<Backend>;
@@ -24,9 +24,6 @@ type Terminal = tui::Terminal<Backend>;
 // Types for types that implement View
 pub type Frame<'a> = tui::Frame<'a, Backend>;
 pub type Rect = tui::layout::Rect;
-
-// Allow various class to the view
-pub trait DrawableEmulator: Emulator {}
 
 pub struct DebugView(Option<Inner>);
 

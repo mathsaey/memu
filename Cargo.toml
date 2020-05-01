@@ -5,6 +5,13 @@ authors = ["Mathijs Saey <mathijs@mathsaey.be>"]
 edition = "2018"
 description = "Toy emulators written in Rust"
 
+[features]
+default = ["debug-view", "chip8"]
+
+debug-view = ["tui"]
+
+chip8 = ["bit-vec"]
+
 [dependencies]
 # Command line parsing
 structopt = "0.3"
@@ -14,5 +21,7 @@ minifb = "0.16"
 flexi_logger = "0.15"
 log = "0.4"
 # Debug View
-crossterm = "0.17"
-tui = { version = "0.9", default-features = false, features = ['crossterm'] }
+crossterm = "0.17" # TODO: Make this optional once game loop is fixed
+tui = { version = "0.9", optional = true, default-features = false, features = ['crossterm'] }
+# Chip8
+bit-vec = { version = "0.6", optional = true}

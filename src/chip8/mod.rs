@@ -195,11 +195,20 @@ impl Chip8 {
 // Debug View //
 // ---------- //
 
-use tui::layout::{Constraint, Direction, Layout};
-use tui::style::*;
-use tui::widgets::*;
+#[cfg(feature = "debug-view")]
+use tui::{
+    style::*,
+    widgets::*,
+    layout::{Constraint, Direction, Layout}
+};
 
 #[inline]
+#[cfg(not(feature = "debug-view"))]
+fn draw_debug(_state: &Chip8, _frame: &mut Frame, _rect: Rect) {
+}
+
+#[inline]
+#[cfg(feature = "debug-view")]
 fn draw_debug(state: &Chip8, frame: &mut Frame, rect: Rect) {
     let top = Layout::default()
         .direction(Direction::Horizontal)
@@ -224,6 +233,7 @@ fn draw_debug(state: &Chip8, frame: &mut Frame, rect: Rect) {
     draw_instructions(state, frame, right[2]);
 }
 
+#[cfg(feature = "debug-view")]
 fn draw_instructions(state: &Chip8, frame: &mut Frame, rect: Rect) {
     let rows = rect.height - 3;
 
@@ -278,6 +288,7 @@ fn draw_instructions(state: &Chip8, frame: &mut Frame, rect: Rect) {
     frame.render_widget(tab, rect);
 }
 
+#[cfg(feature = "debug-view")]
 fn draw_registers(state: &Chip8, frame: &mut Frame, rect: Rect) {
     let mut regs: Vec<Text> = Vec::with_capacity(50);
 
@@ -311,6 +322,7 @@ fn draw_registers(state: &Chip8, frame: &mut Frame, rect: Rect) {
     frame.render_widget(par, rect);
 }
 
+#[cfg(feature = "debug-view")]
 fn draw_stack(state: &Chip8, frame: &mut Frame, rect: Rect) {
     let mut slots: Vec<Text> = Vec::with_capacity(33);
 
@@ -329,6 +341,7 @@ fn draw_stack(state: &Chip8, frame: &mut Frame, rect: Rect) {
     frame.render_widget(par, rect);
 }
 
+#[cfg(feature = "debug-view")]
 fn draw_memory(state: &Chip8, frame: &mut Frame, rect: Rect) {
     let mut constraints = [Constraint::Length(3); 17];
     constraints[0] = Constraint::Length(8);
