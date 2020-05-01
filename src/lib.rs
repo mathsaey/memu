@@ -58,7 +58,7 @@ pub trait Emulator {
     fn cycle(&mut self) -> bool;
 
     fn screen_dimensions(&self) -> (usize, usize);
-    fn screen_buffer(&self) -> &[u32];
+    fn draw_screen(&self) -> &[u32];
 
     fn draw_debug(&self, frame: &mut Frame, area: Rect) {
         let text = [tui::widgets::Text::raw("Debug view not implemented")];

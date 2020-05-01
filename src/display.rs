@@ -35,7 +35,7 @@ impl Display {
         let (width, height) = emulator.screen_dimensions();
         let _ = self
             .0
-            .update_with_buffer(emulator.screen_buffer(), width, height)
+            .update_with_buffer(emulator.draw_screen(), width, height)
             .unwrap();
         Ok(())
     }

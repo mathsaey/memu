@@ -109,7 +109,7 @@ impl crate::Emulator for Chip8 {
         self.fetch().decode().exec(self)
     }
 
-    fn screen_buffer(&self) -> &[u32] {
+    fn draw_screen(&self) -> &[u32] {
         &self.screen
     }
 
