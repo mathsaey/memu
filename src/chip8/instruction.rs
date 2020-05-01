@@ -42,8 +42,8 @@ pub fn not_implemented(_: &mut Chip8, _: Operands) -> bool {
 
 pub fn cls_00e0(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Empty = o {
-        for px in e.screen.iter_mut() {
-            *px = super::PX_UNS;
+        for mut px in e.screen.iter_mut() {
+            *px = false;
         }
     }
     true
@@ -169,12 +169,13 @@ pub fn drw_dxyn(e: &mut Chip8, o: Operands) -> bool {
                     let addr = y * super::WIDTH + x;
 
                     // Collision check
-                    if e.screen[addr] == super::PX_SET {
+                    if e.screen[addr] == true {
                         collision = true;
                     }
 
                     // Update the display
-                    e.screen[addr] ^= super::PX_SET;
+                    let cur = e.screen[addr];
+                    e.screen.set(addr, cur ^ true);
                 }
             }
         }

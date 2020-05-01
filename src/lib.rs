@@ -80,7 +80,7 @@ pub trait Emulator {
     fn cycle(&mut self) -> bool;
 
     fn screen_dimensions(&self) -> (usize, usize);
-    fn draw_screen(&self) -> &[u32];
+    fn draw_screen(&self) -> Vec<u32>;
 
     #[cfg(feature = "debug-view")]
     fn draw_debug(&self, frame: &mut Frame, area: Rect) {

@@ -10,7 +10,7 @@ default = ["debug-view", "chip8"]
 
 debug-view = ["tui"]
 
-chip8 = ["bit-vec"]
+chip8 = ["bitvec"]
 
 [dependencies]
 # Command line parsing
@@ -24,4 +24,4 @@ log = "0.4"
 crossterm = "0.17" # TODO: Make this optional once game loop is fixed
 tui = { version = "0.9", optional = true, default-features = false, features = ['crossterm'] }
 # Chip8
-bit-vec = { version = "0.6", optional = true}
+bitvec = { version = "0.17", optional = true}

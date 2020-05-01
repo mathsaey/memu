@@ -1,9 +1,10 @@
 mod instruction;
 mod opcode;
 
+use bitvec::vec::BitVec;
 use log::*;
 
-use std::ops::{Range, Index, IndexMut};
+use std::ops::{Index, IndexMut};
 
 use super::debug_view::{Frame, Rect};
 use opcode::{OpCode, Operands};
@@ -38,7 +39,7 @@ pub struct Chip8 {
     reg_dt: u8,       // Delay timer
     reg_st: u8,       // Sound timer
     // Graphics
-    screen: Vec<u32>, // Screen
+    screen: BitVec,   // Screen
 }
 
 // Avoid constant typecasting in instructions
@@ -109,8 +110,10 @@ impl crate::Emulator for Chip8 {
         self.fetch().decode().exec(self)
     }
 
-    fn draw_screen(&self) -> &[u32] {
-        &self.screen
+    fn draw_screen(&self) -> Vec<u32> {
+        self.screen.iter().map(|&b| {
+            if b { PX_SET } else { PX_UNS }
+        }).collect()
     }
 
     fn draw_debug(&self, frame: &mut Frame, rect: Rect) {
@@ -128,7 +131,7 @@ impl Chip8 {
             reg_pc: 0x200, // Programs start at 0x200
             reg_dt: 0x00,
             reg_st: 0x00,
-            screen: vec![0x0; WIDTH * HEIGHT],
+            screen: BitVec::repeat(false, WIDTH * HEIGHT)
         };
 
         res.load_sprites();
