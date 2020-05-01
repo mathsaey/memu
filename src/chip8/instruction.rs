@@ -24,7 +24,7 @@ impl Instruction {
         }
     }
 
-    pub fn exec(self, chip8: &mut Chip8) -> bool{
+    pub fn exec(self, chip8: &mut Chip8) -> bool {
         trace!("Execute `{}`", self);
         let inst = self.instruction;
         inst(chip8, self.operands)
@@ -138,17 +138,16 @@ pub fn drw_dxyn(e: &mut Chip8, o: Operands) -> bool {
 
         // Fetch the sprite
         let i = e.reg_i as usize;
-        let sprite = &e.mem[i .. i + c as usize];
+        let sprite = &e.mem[i..i + c as usize];
 
         // Feth the location to draw
         let base_x = e.regs[x as usize];
         let base_y = e.regs[y as usize];
 
         // Iterate over every bit in the sprite, to chec if it is set
-        for (sprite_y, disp_y) in (base_y .. (base_y + c)).enumerate() {
-            for (sprite_x, disp_x) in (base_x .. (base_x + 8)).enumerate() {
+        for (sprite_y, disp_y) in (base_y..(base_y + c)).enumerate() {
+            for (sprite_x, disp_x) in (base_x..(base_x + 8)).enumerate() {
                 if (sprite[sprite_y] & (0b10000000 >> sprite_x)) != 0 {
-
                     // Drawing wraps around
                     let y = disp_y as usize % super::HEIGHT;
                     let x = disp_x as usize % super::WIDTH;

@@ -14,9 +14,9 @@ use tui::layout::{Constraint, Direction, Layout};
 use tui::style::*;
 use tui::widgets::*;
 
-use super::Emulator;
 use super::logger;
 use super::Conf;
+use super::Emulator;
 
 type Backend = CrosstermBackend<Stdout>;
 type Terminal = tui::Terminal<Backend>;
@@ -33,7 +33,7 @@ pub struct DebugView(Option<Inner>);
 struct Inner {
     terminal: Terminal,
     log_wrapper: LogWrapper,
-    log_handle: Option<ReconfigurationHandle>
+    log_handle: Option<ReconfigurationHandle>,
 }
 
 impl DebugView {
@@ -85,7 +85,7 @@ impl Inner {
         Ok(Inner {
             terminal,
             log_wrapper,
-            log_handle: None
+            log_handle: None,
         })
     }
 

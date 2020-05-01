@@ -66,12 +66,9 @@ impl OpCode {
                 instruction::not_implemented,
             ),
             // 4xkk
-            (4, _, _, _) => Instruction::create(
-                self,
-                "SNE",
-                decode_reg_const(self),
-                instruction::sne_4xnn,
-            ),
+            (4, _, _, _) => {
+                Instruction::create(self, "SNE", decode_reg_const(self), instruction::sne_4xnn)
+            }
             // 5xy0
             (5, _, _, 0) => {
                 Instruction::create(self, "SE", decode_regs(self), instruction::not_implemented)
@@ -81,12 +78,9 @@ impl OpCode {
                 Instruction::create(self, "LD", decode_reg_const(self), instruction::ld_6xkk)
             }
             // 7xkk
-            (7, _, _, _) => Instruction::create(
-                self,
-                "ADD",
-                decode_reg_const(self),
-                instruction::add_7xkk,
-            ),
+            (7, _, _, _) => {
+                Instruction::create(self, "ADD", decode_reg_const(self), instruction::add_7xkk)
+            }
             // 8xy0
             (8, _, _, 0) => {
                 Instruction::create(self, "LD", decode_regs(self), instruction::ld_8xy0)
@@ -146,12 +140,9 @@ impl OpCode {
                 instruction::not_implemented,
             ),
             // Dxyn
-            (0xD, _, _, _) => Instruction::create(
-                self,
-                "DRW",
-                decode_regs_const(self),
-                instruction::drw_dxyn,
-            ),
+            (0xD, _, _, _) => {
+                Instruction::create(self, "DRW", decode_regs_const(self), instruction::drw_dxyn)
+            }
             // Ex9E
             (0xE, _, 9, 0xE) => {
                 Instruction::create(self, "SKP", decode_reg(self), instruction::not_implemented)

@@ -1,9 +1,9 @@
-use minifb::{Key, Window, WindowOptions, ScaleMode};
+use minifb::{Key, ScaleMode, Window, WindowOptions};
 
 use std::error::Error;
 
-use super::Emulator;
 use super::Conf;
+use super::Emulator;
 
 // TODO: Remove calls to unwrap once minifb is updated
 // TODO: Find a better way to set scale
@@ -19,12 +19,13 @@ impl Display {
             format!("memu ({}) - {}", conf.emulator, conf.rom_path).as_str(),
             width,
             height,
-            WindowOptions{
+            WindowOptions {
                 scale: Scale::X16,
                 scale_mode: ScaleMode::AspectRatioStretch,
                 ..WindowOptions::default()
-            }
-        ).unwrap();
+            },
+        )
+        .unwrap();
 
         window.limit_update_rate(None);
         Ok(Display(window))
@@ -32,7 +33,10 @@ impl Display {
 
     pub fn update(&mut self, emulator: &Box<dyn Emulator>) -> Result<(), Box<dyn Error>> {
         let (width, height) = emulator.screen_dimensions();
-        let _ = self.0.update_with_buffer(emulator.screen_buffer(), width, height).unwrap();
+        let _ = self
+            .0
+            .update_with_buffer(emulator.screen_buffer(), width, height)
+            .unwrap();
         Ok(())
     }
 
