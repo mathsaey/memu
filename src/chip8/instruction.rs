@@ -49,8 +49,23 @@ pub fn cls_00e0(e: &mut Chip8, o: Operands) -> bool {
     true
 }
 
+pub fn ret_00ee(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Empty = o {
+        e.reg_pc = e.stack.pop().unwrap();
+    }
+    false
+}
+
 pub fn jp_1nnn(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Address(a) = o {
+        e.reg_pc = a;
+    }
+    false
+}
+
+pub fn call_2nnn(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Address(a) = o {
+        e.stack.push(e.reg_pc);
         e.reg_pc = a;
     }
     false

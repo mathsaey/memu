@@ -41,7 +41,7 @@ impl OpCode {
             }
             // 00EE
             (0, 0, 0xE, 0xE) => {
-                Instruction::create(self, "RET", Operands::Empty, instruction::not_implemented)
+                Instruction::create(self, "RET", Operands::Empty, instruction::ret_00ee)
             }
             //0nnn
             (0, _, _, _) => {
@@ -52,12 +52,9 @@ impl OpCode {
                 Instruction::create(self, "JP", decode_addr(self), instruction::jp_1nnn)
             }
             // 2nnn
-            (2, _, _, _) => Instruction::create(
-                self,
-                "CALL",
-                decode_addr(self),
-                instruction::not_implemented,
-            ),
+            (2, _, _, _) => {
+                Instruction::create(self, "CALL", decode_addr(self), instruction::call_2nnn)
+            }
             // 3xkk
             (3, _, _, _) => Instruction::create(
                 self,
