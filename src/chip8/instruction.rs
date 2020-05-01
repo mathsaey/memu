@@ -58,7 +58,7 @@ pub fn jp_1nnn(e: &mut Chip8, o: Operands) -> bool {
 
 pub fn sne_4xnn(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::RegAndConst(r, c) = o {
-        if e.regs[r as usize] != c {
+        if e.regs[r] != c {
             e.pc_inc();
         }
     }
@@ -67,57 +67,57 @@ pub fn sne_4xnn(e: &mut Chip8, o: Operands) -> bool {
 
 pub fn ld_6xkk(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::RegAndConst(r, c) = o {
-        e.regs[r as usize] = c;
+        e.regs[r] = c;
     }
     false
 }
 
 pub fn add_7xkk(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::RegAndConst(r, k) = o {
-        let res = (e.regs[r as usize] as u16) + (k as u16);
+        let res = (e.regs[r] as u16) + (k as u16);
         // Flag is not set if overflow occurs
-        e.regs[r as usize] = (res & 0x00FF) as u8;
+        e.regs[r] = (res & 0x00FF) as u8;
     }
     false
 }
 
 pub fn ld_8xy0(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Regs(x, y) = o {
-        e.regs[x as usize] = e.regs[y as usize];
+        e.regs[x] = e.regs[y];
     }
     false
 }
 
 pub fn or_8xy1(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Regs(x, y) = o {
-        e.regs[x as usize] |= e.regs[y as usize];
+        e.regs[x] |= e.regs[y];
     }
     false
 }
 
 pub fn and_8xy2(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Regs(x, y) = o {
-        e.regs[x as usize] &= e.regs[y as usize];
+        e.regs[x] &= e.regs[y];
     }
     false
 }
 
 pub fn xor_8xy3(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Regs(x, y) = o {
-        e.regs[x as usize] ^= e.regs[y as usize];
+        e.regs[x] ^= e.regs[y];
     }
     false
 }
 
 pub fn add_8xy4(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Regs(x, y) = o {
-        let res = (e.regs[x as usize] as u16) + (e.regs[y as usize] as u16);
+        let res = (e.regs[x] as u16) + (e.regs[y] as u16);
         if res > 255 {
             e.set_flag()
         } else {
             e.clear_flag()
         }
-        e.regs[x as usize] = (res & 0x00FF) as u8;
+        e.regs[x] = (res & 0x00FF) as u8;
     }
     false
 }
@@ -138,11 +138,11 @@ pub fn drw_dxyn(e: &mut Chip8, o: Operands) -> bool {
 
         // Fetch the sprite
         let i = e.reg_i as usize;
-        let sprite = &e.mem[i..i + c as usize];
+        let sprite = &e.mem.0[i..i + c as usize];
 
         // Feth the location to draw
-        let base_x = e.regs[x as usize];
-        let base_y = e.regs[y as usize];
+        let base_x = e.regs[x];
+        let base_y = e.regs[y];
 
         // Iterate over every bit in the sprite, to chec if it is set
         for (sprite_y, disp_y) in (base_y..(base_y + c)).enumerate() {
@@ -174,7 +174,7 @@ pub fn drw_dxyn(e: &mut Chip8, o: Operands) -> bool {
 
 pub fn add_fx1e(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
-        e.reg_i += e.regs[r as usize] as u16;
+        e.reg_i += e.regs[r] as u16;
     }
     false
 }
@@ -182,7 +182,7 @@ pub fn add_fx1e(e: &mut Chip8, o: Operands) -> bool {
 pub fn ld_fx55(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
         for ctr in 0..(r + 1) {
-            e.mem[e.reg_i as usize] = e.regs[ctr as usize];
+            e.mem[e.reg_i] = e.regs[ctr];
             e.reg_i += 1;
         }
     }
@@ -192,7 +192,7 @@ pub fn ld_fx55(e: &mut Chip8, o: Operands) -> bool {
 pub fn ld_fx65(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
         for ctr in 0..(r + 1) {
-            e.regs[ctr as usize] = e.mem[e.reg_i as usize];
+            e.regs[ctr] = e.mem[e.reg_i];
             e.reg_i += 1;
         }
     }
@@ -201,7 +201,7 @@ pub fn ld_fx65(e: &mut Chip8, o: Operands) -> bool {
 
 pub fn ld_fx29(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
-        let addr = e.regs[r as usize];
+        let addr = e.regs[r];
         e.reg_i = e.sprite_addr(addr);
     }
     false

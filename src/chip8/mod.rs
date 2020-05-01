@@ -3,8 +3,14 @@ mod opcode;
 
 use log::*;
 
+use std::ops::{Range, Index, IndexMut};
+
 use super::debug_view::{Frame, Rect};
 use opcode::{OpCode, Operands};
+
+// --------- //
+// Constants //
+// --------- //
 
 const STACK_SIZE: usize = 16;
 const GP_AMOUNT: usize = 16;
@@ -16,20 +22,73 @@ const HEIGHT: usize = 32;
 const PX_SET: u32 = super::display::Display::rgb(0xFF, 0xFF, 0xFF);
 const PX_UNS: u32 = super::display::Display::rgb(0x00, 0x00, 0x00);
 
+// --------------- //
+// Data Structures //
+// --------------- //
+
 pub struct Chip8 {
     // Main Memory
-    mem: [u8; MEM_SIZE],
+    mem: Mem,
     // Stack
     stack: Vec<u16>, // Stack to store program counter
     // Registers
-    regs: [u8; GP_AMOUNT], // General purpose, V0 to VF
-    reg_i: u16,            // Address register
-    reg_pc: u16,           // Program counter (pseudo)
-    reg_dt: u8,            // Delay timer
-    reg_st: u8,            // Sound timer
+    regs: Regs,       // General purpose, V0 to VF
+    reg_i: u16,       // Address register
+    reg_pc: u16,      // Program counter (pseudo)
+    reg_dt: u8,       // Delay timer
+    reg_st: u8,       // Sound timer
     // Graphics
     screen: Vec<u32>, // Screen
 }
+
+// Avoid constant typecasting in instructions
+struct Regs([u8; GP_AMOUNT]);
+
+impl Regs {
+    fn new() -> Regs {
+        Regs([0x00 ; GP_AMOUNT])
+    }
+}
+
+impl Index<u8> for Regs {
+    type Output = u8;
+
+    fn index(&self, index: u8) -> &Self::Output {
+        &self.0[index as usize]
+    }
+}
+
+impl IndexMut<u8> for Regs {
+    fn index_mut(&mut self, index: u8) -> &mut Self::Output {
+        &mut self.0[index as usize]
+    }
+}
+
+struct Mem([u8; MEM_SIZE]);
+
+impl Mem {
+    pub fn new() -> Mem {
+        Mem([0x00; MEM_SIZE])
+    }
+}
+
+impl Index<u16> for Mem {
+    type Output = u8;
+
+    fn index(&self, index: u16) -> &Self::Output {
+        &self.0[index as usize]
+    }
+}
+
+impl IndexMut<u16> for Mem {
+    fn index_mut(&mut self, index: u16) -> &mut Self::Output {
+        &mut self.0[index as usize]
+    }
+}
+
+// -------------- //
+// Emulator Logic //
+// -------------- //
 
 impl crate::Emulator for Chip8 {
     fn clock_rate(&self) -> usize {
@@ -42,7 +101,7 @@ impl crate::Emulator for Chip8 {
 
     fn load_rom(&mut self, content: Vec<u8>) {
         for (ctr, el) in content.into_iter().enumerate() {
-            self.mem[self.reg_pc as usize + ctr] = el;
+            self.mem[self.reg_pc + (ctr as u16)] = el;
         }
     }
 
@@ -62,9 +121,9 @@ impl crate::Emulator for Chip8 {
 impl Chip8 {
     pub fn new() -> Chip8 {
         let mut res = Chip8 {
-            mem: [0x00; MEM_SIZE],
+            mem: Mem::new(),
             stack: Vec::with_capacity(STACK_SIZE),
-            regs: [0x00; GP_AMOUNT],
+            regs: Regs::new(),
             reg_i: 0x000,
             reg_pc: 0x200, // Programs start at 0x200
             reg_dt: 0x00,
@@ -99,7 +158,7 @@ impl Chip8 {
     }
 
     fn get_opcode(&self, idx: u16) -> OpCode {
-        OpCode::from_cells(self.mem[idx as usize], self.mem[(idx + 1) as usize])
+        OpCode::from_cells(self.mem[idx], self.mem[idx + 1])
     }
 
     #[inline]
@@ -109,7 +168,7 @@ impl Chip8 {
 
     fn load_sprite(&mut self, digit: u8, sprite: &[u8; 5]) {
         let addr = self.sprite_addr(digit) as usize;
-        self.mem[addr..(addr + 5)].copy_from_slice(sprite);
+        self.mem.0[addr..(addr + 5)].copy_from_slice(sprite);
     }
 
     fn load_sprites(&mut self) {
@@ -224,7 +283,7 @@ fn draw_registers(state: &Chip8, frame: &mut Frame, rect: Rect) {
 
     let name_style = Style::default().fg(Color::Blue);
 
-    for (idx, reg) in state.regs.iter().enumerate() {
+    for (idx, reg) in state.regs.0.iter().enumerate() {
         regs.push(Text::styled(format!("v{:X} ", idx), name_style));
         regs.push(Text::raw(format!("{:#04X} ", reg)));
         if (idx + 1) % 4 == 0 {
@@ -286,7 +345,7 @@ fn draw_memory(state: &Chip8, frame: &mut Frame, rect: Rect) {
         vec.push(format!("${:#06X}", start_addr));
 
         for addr in start_addr..(start_addr + 16) {
-            vec.push(format!("{:02X}", state.mem[(addr) as usize]));
+            vec.push(format!("{:02X}", state.mem[addr]));
         }
 
         Row::Data(vec.into_iter())
