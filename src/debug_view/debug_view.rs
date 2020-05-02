@@ -2,11 +2,10 @@ use std::collections::VecDeque;
 use std::error::Error;
 use std::sync::{Arc, Mutex};
 
-use flexi_logger::ReconfigurationHandle;
-
 use std::io::{stdout, Stdout, Write};
 
-use crossterm::event::{read, Event};
+use flexi_logger::ReconfigurationHandle;
+
 use crossterm::{execute, terminal};
 
 use tui::backend::CrosstermBackend;
@@ -18,20 +17,29 @@ use crate::Conf;
 use crate::logger;
 use crate::Emulator;
 
-type Backend = CrosstermBackend<Stdout>;
-type Terminal = tui::Terminal<Backend>;
+// ----- //
+// Trait //
+// ----- //
+
+pub trait Debug {
+    fn debug_view(&self, frame: &mut Frame, area: Rect) {
+        let text = [tui::widgets::Text::raw("Debug view not implemented")];
+        let par =
+            tui::widgets::Paragraph::new(text.iter()).alignment(tui::layout::Alignment::Center);
+
+        frame.render_widget(par, area);
+    }
+}
+
+// ------- //
+// Wrapper //
+// ------- //
 
 // Types for types that implement View
 pub type Frame<'a> = tui::Frame<'a, Backend>;
 pub type Rect = tui::layout::Rect;
 
 pub struct DebugView(Option<Inner>);
-
-struct Inner {
-    terminal: Terminal,
-    log_wrapper: LogWrapper,
-    log_handle: Option<ReconfigurationHandle>,
-}
 
 impl DebugView {
     pub fn new(conf: &Conf) -> Result<DebugView, Box<dyn Error>> {
@@ -59,11 +67,19 @@ impl DebugView {
         }
         Ok(())
     }
+}
 
-    pub fn wait_for_key(&self) -> Result<Event, Box<dyn Error>> {
-        let event = read()?;
-        Ok(event)
-    }
+// ---------- //
+// Debug View //
+// ---------- //
+
+type Backend = CrosstermBackend<Stdout>;
+type Terminal = tui::Terminal<Backend>;
+
+struct Inner {
+    terminal: Terminal,
+    log_wrapper: LogWrapper,
+    log_handle: Option<ReconfigurationHandle>,
 }
 
 impl Inner {
@@ -105,7 +121,7 @@ impl Inner {
                 .split(frame.size());
 
             draw_log(log_buffer, &mut frame, chunks[1]);
-            emulator.draw_debug(&mut frame, chunks[0]);
+            emulator.debug_view(&mut frame, chunks[0]);
         })?;
 
         logger::enable(self.log_handle.as_mut().unwrap());

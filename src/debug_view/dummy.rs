@@ -13,8 +13,9 @@ pub struct DebugView();
 pub type Frame = ();
 pub type Rect = ();
 
-// TODO: Remove this once game loop is fixed
-use crossterm::event::{read, Event};
+pub trait Debug {
+    fn debug_view(&self, _frame: &mut Frame, _area: Rect) {}
+}
 
 impl DebugView {
     pub fn new(conf: &Conf) -> Result<DebugView, Box<dyn Error>> {
@@ -34,12 +35,6 @@ impl DebugView {
 
     pub fn draw(&mut self, emulator: &Box<dyn Emulator>) -> Result<(), Box<dyn Error>> {
         Ok(())
-    }
-
-    // TODO: remove this
-    pub fn wait_for_key(&self) -> Result<Event, Box<dyn Error>> {
-        let event = read()?;
-        Ok(event)
     }
 }
 

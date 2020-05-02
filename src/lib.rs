@@ -1,12 +1,12 @@
 // Emulator-agnostic modules
 mod debug_view;
-mod display;
 mod logger;
 
 // Emulators
 #[cfg(feature = "chip8")]
 mod chip8;
 
+use ggez::{*, conf::*};
 use log::*;
 
 use structopt::clap::arg_enum;
@@ -16,8 +16,7 @@ use std::error::Error;
 use std::fmt;
 use std::fs;
 
-use debug_view::{DebugView, Frame, Rect};
-use display::Display;
+use debug_view::{Debug, DebugView};
 
 // ------------- //
 // Configuration //
@@ -73,32 +72,26 @@ impl Error for MissingFeatureError {
 // Emulator Trait //
 // -------------- //
 
-pub trait Emulator {
-    fn clock_rate(&self) -> usize;
-
+pub trait Emulator: Debug {
+    /// Load a rom into the memory of the emulator
     fn load_rom(&mut self, rom: Vec<u8>);
+
+    /// Advance the emulator by the amount of cycles that should have occured in the elapsed time
+    fn advance(&mut self, elapsed: std::time::Duration) -> bool;
+
+    /// Advance by one cpu cycle
     fn cycle(&mut self) -> bool;
 
-    fn screen_dimensions(&self) -> (usize, usize);
-    fn draw_screen(&self) -> Vec<u32>;
+    /// Size of the drawn area
+    fn draw_size(&self) -> (f32, f32);
 
-    #[cfg(feature = "debug-view")]
-    fn draw_debug(&self, frame: &mut Frame, area: Rect) {
-        let text = [tui::widgets::Text::raw("Debug view not implemented")];
-        let par =
-            tui::widgets::Paragraph::new(text.iter()).alignment(tui::layout::Alignment::Center);
-
-        frame.render_widget(par, area);
-    }
-
-    #[cfg(not(feature = "debug-view"))]
-    fn draw_debug(&self, _frame: &mut Frame, _area: Rect) {
-    }
+    /// Draw the emulator state to the screen
+    fn draw(&self, ctx: &mut Context) -> GameResult<()>;
 }
 
-// -------------------- //
-// Initialisation Logic //
-// -------------------- //
+// ----------------------------- //
+// Emulator Initialisation Logic //
+// ----------------------------- //
 
 #[cfg(feature = "chip8")]
 fn init_chip8(_: EmulatorKind) -> Result<Box<dyn Emulator>, Box<dyn Error>> {
@@ -121,42 +114,113 @@ fn init_emulator(conf: &Conf) -> Result<Box<dyn Emulator>, Box<dyn Error>> {
     Ok(emulator)
 }
 
-// ---- //
-// Main //
-// ---- //
+// ------------------- //
+// Game Loop and State //
+// ------------------- //
 
-use crossterm::event::{Event, KeyCode, KeyEvent};
+struct State {
+    emulator: Box<dyn Emulator>,
+    debug_view: DebugView,
+
+    step_mode: bool,
+
+    // Drawing
+    should_draw: bool,
+}
+
+impl State {
+    fn new(emulator: Box<dyn Emulator>, debug_view: DebugView) -> State {
+        State {
+            emulator,
+            debug_view,
+            should_draw: true,
+            step_mode: false,
+        }
+    }
+
+    fn clear_draw(&mut self) {
+        self.should_draw = false;
+    }
+
+    fn force_draw(&mut self) {
+        self.should_draw = true;
+    }
+
+    fn maybe_draw(&mut self, should_draw: bool) {
+        self.should_draw = self.should_draw || should_draw;
+    }
+
+    fn set_window_size(&mut self, ctx: &mut Context) {
+        let (win_width, win_height) = graphics::drawable_size(ctx);
+        let (emu_width, emu_height) = self.emulator.draw_size();
+        let height_fct = win_height / emu_height;
+        let width_fct = win_width / emu_width;
+        let fct  = height_fct.min(width_fct);
+
+        let window_mode = WindowMode::default()
+            .dimensions(emu_width * fct, emu_height * fct)
+            .min_dimensions(emu_width, emu_height)
+            .resizable(true);
+
+        graphics::set_mode(ctx, window_mode).unwrap();
+        graphics::set_screen_coordinates(ctx, [0.0, 0.0, emu_width, emu_height].into()).unwrap();
+
+        self.force_draw();
+    }
+}
+
+impl ggez::event::EventHandler for State {
+    fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
+        let should_draw = self.emulator.advance(timer::delta(ctx));
+        self.maybe_draw(should_draw);
+
+        self.debug_view.draw(&self.emulator).unwrap();
+        Ok(())
+    }
+
+    fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
+        if self.should_draw {
+            self.clear_draw();
+
+            // Clear the screen and allow the emulator to draw
+            graphics::clear(ctx, graphics::BLACK);
+            self.emulator.draw(ctx)?;
+            graphics::present(ctx)?;
+        }
+
+        // Find a better way to do this, currently vsync doesn't work on osx
+        // At the very least, make it reason about frame time
+        // timer::yield_now();
+        timer::sleep(std::time::Duration::from_millis(20));
+
+        Ok(())
+    }
+
+    fn resize_event(&mut self, ctx: &mut Context, _width: f32, _height: f32) {
+        self.set_window_size(ctx);
+    }
+}
 
 pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
     let mut debug_view = DebugView::new(&conf)?;
     logger::setup(&conf, &mut debug_view)?;
 
-    let mut emulator = init_emulator(&conf)?;
-    let mut display = Display::new(&conf, &emulator)?;
-
-    display.update(&emulator)?;
+    let emulator = init_emulator(&conf)?;
     debug_view.draw(&emulator)?;
 
-    loop {
-        let event = debug_view.wait_for_key()?;
-        match event {
-            Event::Key(KeyEvent {
-                code: KeyCode::Char(' '),
-                modifiers: _,
-            }) => {
-                if emulator.cycle() {
-                    display.update(&emulator)?;
-                }
-                debug_view.draw(&emulator)?;
-            }
-            Event::Key(KeyEvent {
-                code: KeyCode::Char('q'),
-                modifiers: _,
-            }) => break,
-            Event::Resize(_, _) => debug_view.draw(&emulator)?,
-            _ => continue,
-        }
-    }
+    let mut state = State::new(emulator, debug_view);
 
+    let window_setup = conf::WindowSetup::default()
+        .title(format!("memu ({}) - {}", conf.emulator, conf.rom_path).as_str())
+        .vsync(true);
+
+    let (ref mut ctx, ref mut event_loop) = ContextBuilder::new("memu", "Mathijs Saey")
+        .window_setup(window_setup)
+        .build()?;
+
+    state.set_window_size(ctx);
+
+    info!("Starting game loop");
+    event::run(ctx, event_loop, &mut state).unwrap();
     Ok(())
 }
