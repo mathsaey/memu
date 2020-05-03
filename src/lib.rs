@@ -220,6 +220,28 @@ impl State {
             mode => mode,
         };
     }
+
+    fn frame_mode_cycle(&mut self) -> bool {
+        const MAX_CYCLES: u8 = 100;
+
+        let dt = self.emulator.cycle_dt();
+        let mut frame = false;
+        let mut ctr = 0;
+
+        while !frame && ctr < MAX_CYCLES {
+            ctr += 1;
+            frame = self.emulator.advance(dt);
+        }
+
+        if !frame {
+            error!(
+                "Possible infinite loop: more than {} cycles without a frame update",
+                MAX_CYCLES
+            );
+        }
+
+        frame
+    }
 }
 
 // --------- //
@@ -233,14 +255,7 @@ impl ggez::event::EventHandler for State {
                 .emulator
                 .advance(timer::delta(ctx).mul_f32(self.speed_factor)),
             ProgressMode::Cycle(true) => self.emulator.advance(self.emulator.cycle_dt()),
-            ProgressMode::Frame(true) => {
-                let dt = self.emulator.cycle_dt();
-                let mut frame = false;
-                while !frame {
-                    frame = self.emulator.advance(dt);
-                }
-                frame
-            }
+            ProgressMode::Frame(true) => self.frame_mode_cycle(),
             _ => false,
         };
 
