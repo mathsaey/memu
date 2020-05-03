@@ -6,7 +6,7 @@ mod logger;
 #[cfg(feature = "chip8")]
 mod chip8;
 
-use ggez::{*, conf::*};
+use ggez::{conf::*, input::keyboard::*, *};
 use log::*;
 
 use structopt::clap::arg_enum;
@@ -79,8 +79,8 @@ pub trait Emulator: Debug {
     /// Advance the emulator by the amount of cycles that should have occured in the elapsed time
     fn advance(&mut self, elapsed: std::time::Duration) -> bool;
 
-    /// Advance by one cpu cycle
-    fn cycle(&mut self) -> bool;
+    /// Amount of time that needs to pass for a single cycle
+    fn cycle_dt(&self) -> std::time::Duration;
 
     /// Size of the drawn area
     fn draw_size(&self) -> (f32, f32);
@@ -114,18 +114,37 @@ fn init_emulator(conf: &Conf) -> Result<Box<dyn Emulator>, Box<dyn Error>> {
     Ok(emulator)
 }
 
-// ------------------- //
-// Game Loop and State //
-// ------------------- //
+// ---------- //
+// Game State //
+// ---------- //
+
+#[derive(Clone, Copy)]
+enum ProgressMode {
+    Normal,
+    Cycle(bool),
+    Frame(bool),
+}
 
 struct State {
     emulator: Box<dyn Emulator>,
     debug_view: DebugView,
 
-    step_mode: bool,
+    // Emulation mode / speed
+    progress_mode: ProgressMode,
+    speed_factor: f32,
 
     // Drawing
     should_draw: bool,
+}
+
+impl ProgressMode {
+    fn next(self) -> ProgressMode {
+        match self {
+            ProgressMode::Normal => ProgressMode::Cycle(false),
+            ProgressMode::Cycle(_) => ProgressMode::Frame(false),
+            ProgressMode::Frame(_) => ProgressMode::Normal,
+        }
+    }
 }
 
 impl State {
@@ -133,8 +152,9 @@ impl State {
         State {
             emulator,
             debug_view,
+            progress_mode: ProgressMode::Normal,
+            speed_factor: 1.0,
             should_draw: true,
-            step_mode: false,
         }
     }
 
@@ -155,7 +175,7 @@ impl State {
         let (emu_width, emu_height) = self.emulator.draw_size();
         let height_fct = win_height / emu_height;
         let width_fct = win_width / emu_width;
-        let fct  = height_fct.min(width_fct);
+        let fct = height_fct.min(width_fct);
 
         let window_mode = WindowMode::default()
             .dimensions(emu_width * fct, emu_height * fct)
@@ -167,14 +187,61 @@ impl State {
 
         self.force_draw();
     }
+
+    fn change_progress_mode(&mut self, _ctx: &mut Context) {
+        self.progress_mode = self.progress_mode.next();
+    }
+
+    fn inc_speed(&mut self, _ctx: &mut Context) {
+        self.speed_factor += 0.1;
+    }
+    fn dec_speed(&mut self, _ctx: &mut Context) {
+        self.speed_factor -= 0.1;
+    }
+
+    fn set_progress(&mut self) {
+        self.progress_mode = match self.progress_mode {
+            ProgressMode::Cycle(_) => ProgressMode::Cycle(true),
+            ProgressMode::Frame(_) => ProgressMode::Frame(true),
+            mode => mode,
+        };
+    }
+
+    fn clear_progress(&mut self) {
+        self.progress_mode = match self.progress_mode {
+            ProgressMode::Cycle(_) => ProgressMode::Cycle(false),
+            ProgressMode::Frame(_) => ProgressMode::Frame(false),
+            mode => mode,
+        };
+    }
 }
+
+// --------- //
+// Game Loop //
+// --------- //
 
 impl ggez::event::EventHandler for State {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
-        let should_draw = self.emulator.advance(timer::delta(ctx));
-        self.maybe_draw(should_draw);
+        let emu_requires_draw = match self.progress_mode {
+            ProgressMode::Normal => self
+                .emulator
+                .advance(timer::delta(ctx).mul_f32(self.speed_factor)),
+            ProgressMode::Cycle(true) => self.emulator.advance(self.emulator.cycle_dt()),
+            ProgressMode::Frame(true) => {
+                let dt = self.emulator.cycle_dt();
+                let mut frame = false;
+                while !frame {
+                    frame = self.emulator.advance(dt);
+                }
+                frame
+            }
+            _ => false,
+        };
 
+        self.clear_progress();
+        self.maybe_draw(emu_requires_draw);
         self.debug_view.draw(&self.emulator).unwrap();
+
         Ok(())
     }
 
@@ -182,16 +249,10 @@ impl ggez::event::EventHandler for State {
         if self.should_draw {
             self.clear_draw();
 
-            // Clear the screen and allow the emulator to draw
             graphics::clear(ctx, graphics::BLACK);
             self.emulator.draw(ctx)?;
             graphics::present(ctx)?;
         }
-
-        // Find a better way to do this, currently vsync doesn't work on osx
-        // At the very least, make it reason about frame time
-        // timer::yield_now();
-        timer::sleep(std::time::Duration::from_millis(20));
 
         Ok(())
     }
@@ -199,7 +260,27 @@ impl ggez::event::EventHandler for State {
     fn resize_event(&mut self, ctx: &mut Context, _width: f32, _height: f32) {
         self.set_window_size(ctx);
     }
+
+    fn key_down_event(&mut self, ctx: &mut Context, code: KeyCode, _mods: KeyMods, _: bool) {
+        match code {
+            KeyCode::Escape => event::quit(ctx),
+            // Speed / Cycle control
+            KeyCode::Slash => self.change_progress_mode(ctx),
+            KeyCode::Period => self.inc_speed(ctx),
+            KeyCode::Comma => self.dec_speed(ctx),
+            KeyCode::Space => match self.progress_mode {
+                ProgressMode::Cycle(false) => self.set_progress(),
+                ProgressMode::Frame(false) => self.set_progress(),
+                _ => (),
+            },
+            key => info!("Ignorning key: {:?}", key),
+        }
+    }
 }
+
+// ---------------------- //
+// Program Initialisation //
+// ---------------------- //
 
 pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
     let mut debug_view = DebugView::new(&conf)?;
@@ -221,6 +302,6 @@ pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
     state.set_window_size(ctx);
 
     info!("Starting game loop");
-    event::run(ctx, event_loop, &mut state).unwrap();
+    event::run(ctx, event_loop, &mut state)?;
     Ok(())
 }

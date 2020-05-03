@@ -8,7 +8,7 @@ use log::*;
 use std::ops::{Index, IndexMut};
 use std::time::Duration;
 
-use opcode::{OpCode, Operands};
+use opcode::OpCode;
 
 #[cfg(feature = "debug-view")]
 mod debug_view;
@@ -118,8 +118,8 @@ impl crate::Emulator for Chip8 {
         draw
     }
 
-    fn cycle(&mut self) -> bool {
-        self.fetch().decode().exec(self)
+    fn cycle_dt(&self) -> std::time::Duration {
+        CYCLE_TIME
     }
 
     fn draw_size(&self) -> (f32, f32) {
@@ -127,16 +127,6 @@ impl crate::Emulator for Chip8 {
     }
 
     fn draw(&self, ctx: &mut Context) -> GameResult<()> {
-        let mode = DrawMode::fill();
-
-        let bg = Mesh::new_rectangle(
-            ctx,
-            mode,
-            [0.0, 0.0, WIDTH as f32, HEIGHT as f32].into(),
-            BLACK,
-        )?;
-        graphics::draw(ctx, &bg, DrawParam::default())?;
-
         for (idx, &pixel_set) in self.screen.iter().enumerate() {
             let y = idx / WIDTH;
             let x = idx % WIDTH;
@@ -144,7 +134,7 @@ impl crate::Emulator for Chip8 {
             if pixel_set {
                 let rect = Mesh::new_rectangle(
                     ctx,
-                    mode,
+                    DrawMode::fill(),
                     [x as f32, y as f32, 1.0, 1.0].into(),
                     WHITE,
                 )?;
@@ -173,6 +163,20 @@ impl Chip8 {
         res
     }
 
+    fn cycle(&mut self) -> bool {
+        self.fetch().decode().exec(self)
+    }
+
+    fn fetch(&mut self) -> OpCode {
+        let code = self.get_opcode(self.reg_pc);
+        trace!("Fetched `{:#06X}` from ${:#06X}", code, self.reg_pc);
+        self.pc_inc();
+        code
+    }
+
+    fn get_opcode(&self, idx: u16) -> OpCode {
+        OpCode::from_cells(self.mem[idx], self.mem[idx + 1])
+    }
     #[inline]
     fn pc_inc(&mut self) {
         self.reg_pc += 2;
@@ -186,17 +190,6 @@ impl Chip8 {
     #[inline]
     fn set_flag(&mut self) {
         self.regs[0xF] = 1;
-    }
-
-    fn fetch(&mut self) -> OpCode {
-        let code = self.get_opcode(self.reg_pc);
-        trace!("Fetched `{:#06X}` from ${:#06X}", code, self.reg_pc);
-        self.pc_inc();
-        code
-    }
-
-    fn get_opcode(&self, idx: u16) -> OpCode {
-        OpCode::from_cells(self.mem[idx], self.mem[idx + 1])
     }
 
     #[inline]
