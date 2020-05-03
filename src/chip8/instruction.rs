@@ -35,8 +35,9 @@ impl Instruction {
 // Instructions //
 // ------------ //
 
-pub fn not_implemented(_: &mut Chip8, _: Operands) -> bool {
-    warn!("Ignoring unimplemented opcode");
+pub fn not_implemented(e: &mut Chip8, _: Operands) -> bool {
+    let instruction = e.get_opcode(e.reg_pc - 2).decode();
+    warn!("Ignoring unimplemented instruction: {}", instruction);
     false
 }
 
