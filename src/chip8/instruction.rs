@@ -219,6 +219,18 @@ pub fn add_fx1e(e: &mut Chip8, o: Operands) -> bool {
     false
 }
 
+pub fn ld_fx33(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Reg(r) = o {
+        let num = e.regs[r];
+
+        e.mem[e.reg_i + 0] = num / 100;
+        e.mem[e.reg_i + 1] = (num % 100) / 10;
+        e.mem[e.reg_i + 2] = num % 10;
+
+    }
+    false
+}
+
 pub fn ld_fx55(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
         for ctr in 0..(r + 1) {

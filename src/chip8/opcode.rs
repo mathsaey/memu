@@ -171,7 +171,7 @@ impl OpCode {
             }
             // Fx33
             (0xF, _, 3, 3) => {
-                Instruction::create(self, "LD", decode_reg(self), instruction::not_implemented)
+                Instruction::create(self, "LD", decode_reg(self), instruction::ld_fx33)
             }
             // Fx55
             (0xF, _, 5, 5) => {
