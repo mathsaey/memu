@@ -154,6 +154,14 @@ pub fn ld_annn(e: &mut Chip8, o: Operands) -> bool {
     false
 }
 
+pub fn rnd_cxkk(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::RegAndConst(r, c) = o {
+        let rand: u8 = rand::random();
+        e.regs[r] = rand & c;
+    }
+    false
+}
+
 pub fn drw_dxyn(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::RegsAndConst(x, y, c) = o {
         // Reset flag register

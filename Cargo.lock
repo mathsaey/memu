@@ -1293,6 +1293,7 @@ dependencies = [
  "flexi_logger",
  "ggez",
  "log",
+ "rand 0.7.3",
  "structopt",
  "tui",
 ]

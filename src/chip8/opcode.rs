@@ -127,12 +127,9 @@ impl OpCode {
                 Instruction::create(self, "JP", decode_addr(self), instruction::not_implemented)
             }
             // Cxkk
-            (0xC, _, _, _) => Instruction::create(
-                self,
-                "RND",
-                decode_reg_const(self),
-                instruction::not_implemented,
-            ),
+            (0xC, _, _, _) => {
+                Instruction::create(self, "RND", decode_reg_const(self), instruction::rnd_cxkk)
+            }
             // Dxyn
             (0xD, _, _, _) => {
                 Instruction::create(self, "DRW", decode_regs_const(self), instruction::drw_dxyn)

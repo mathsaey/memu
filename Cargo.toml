@@ -13,6 +13,7 @@ debug-view = ["tui", "crossterm"]
 chip8 = ["bitvec"]
 
 [dependencies]
+rand = "0.7"
 # Window, graphics, sounds,...
 ggez = "0.5"
 # Command line parsing
