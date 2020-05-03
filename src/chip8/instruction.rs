@@ -72,6 +72,15 @@ pub fn call_2nnn(e: &mut Chip8, o: Operands) -> bool {
     false
 }
 
+pub fn se_3xnn(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::RegAndConst(r, c) = o {
+        if e.regs[r] == c {
+            e.pc_inc();
+        }
+    }
+    false
+}
+
 pub fn sne_4xnn(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::RegAndConst(r, c) = o {
         if e.regs[r] != c {

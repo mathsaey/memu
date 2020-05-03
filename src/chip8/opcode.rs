@@ -56,12 +56,9 @@ impl OpCode {
                 Instruction::create(self, "CALL", decode_addr(self), instruction::call_2nnn)
             }
             // 3xkk
-            (3, _, _, _) => Instruction::create(
-                self,
-                "SE",
-                decode_reg_const(self),
-                instruction::not_implemented,
-            ),
+            (3, _, _, _) => {
+                Instruction::create(self, "SE", decode_reg_const(self), instruction::se_3xnn)
+            }
             // 4xkk
             (4, _, _, _) => {
                 Instruction::create(self, "SNE", decode_reg_const(self), instruction::sne_4xnn)
