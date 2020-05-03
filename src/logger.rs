@@ -8,7 +8,7 @@ use super::Conf;
 pub fn setup(conf: &Conf, debug_view: &mut DebugView) -> Result<(), Box<dyn Error>> {
     let mut builder = LogSpecBuilder::new();
     builder
-        .default(LevelFilter::Warn)
+        .default(LevelFilter::Off)
         .module("memu", conf.log_level);
 
     let mut logger = Logger::with(builder.build());
