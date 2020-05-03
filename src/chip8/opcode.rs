@@ -150,7 +150,7 @@ impl OpCode {
             }
             // Fx07
             (0xF, _, 0, 7) => {
-                Instruction::create(self, "LD", decode_reg(self), instruction::not_implemented)
+                Instruction::create(self, "LD", decode_reg(self), instruction::ld_fx07)
             }
             // Fx0A
             (0xF, _, 0, 0xA) => {
@@ -158,7 +158,7 @@ impl OpCode {
             }
             // Fx15
             (0xF, _, 1, 5) => {
-                Instruction::create(self, "LD", decode_reg(self), instruction::not_implemented)
+                Instruction::create(self, "LD", decode_reg(self), instruction::ld_fx15)
             }
             // Fx18
             (0xF, _, 1, 8) => {

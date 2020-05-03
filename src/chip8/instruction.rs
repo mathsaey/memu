@@ -189,6 +189,20 @@ pub fn drw_dxyn(e: &mut Chip8, o: Operands) -> bool {
     true
 }
 
+pub fn ld_fx07(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Reg(r) = o {
+        e.regs[r] = e.reg_dt;
+    }
+    false
+}
+
+pub fn ld_fx15(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Reg(r) = o {
+        e.reg_dt = e.regs[r];
+    }
+    false
+}
+
 pub fn add_fx1e(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
         e.reg_i += e.regs[r] as u16;
