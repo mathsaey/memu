@@ -29,6 +29,8 @@ const HEIGHT: usize = 32;
 
 // Chip8 cycles around 500Hz = 2 ms per cycle
 const CYCLE_TIME: Duration = Duration::from_millis(2);
+// Times cycle down at 60Hz = 16.6 ms per cycle
+const TIMER_TIME: Duration = Duration::from_nanos(16666666);
 
 // --------------- //
 // Data Structures //
@@ -49,6 +51,8 @@ pub struct Chip8 {
     screen: BitVec, // Screen
     // Timing
     cycle_timer: Duration, // Elapsed time since last cycle
+    delay_timer: Duration, // Elapsed time since last delay timer tick
+    sound_timer: Duration, // Elapsed time since last sound timer tick
 }
 
 // Avoid constant typecasting in instructions
@@ -109,12 +113,30 @@ impl crate::Emulator for Chip8 {
 
     fn advance(&mut self, elapsed: std::time::Duration) -> bool {
         self.cycle_timer += elapsed;
+        self.delay_timer += elapsed;
+
         let mut draw = false;
 
         while self.cycle_timer > CYCLE_TIME {
             self.cycle_timer -= CYCLE_TIME;
             draw = draw || self.cycle();
         }
+
+        while self.delay_timer > TIMER_TIME {
+            self.delay_timer -= TIMER_TIME;
+            if self.reg_dt > 0 {
+                self.reg_dt -= 1;
+            }
+        }
+
+        while self.sound_timer > TIMER_TIME {
+            self.sound_timer -= TIMER_TIME;
+            self.reg_st -= 1;
+            if self.reg_st > 0 {
+                self.reg_st -= 1;
+            }
+        }
+
         draw
     }
 
@@ -157,6 +179,8 @@ impl Chip8 {
             reg_st: 0x00,
             screen: BitVec::repeat(false, WIDTH * HEIGHT),
             cycle_timer: Duration::from_millis(0),
+            delay_timer: Duration::from_millis(0),
+            sound_timer: Duration::from_millis(0)
         };
 
         res.load_sprites();
