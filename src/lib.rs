@@ -148,11 +148,17 @@ impl ProgressMode {
 }
 
 impl State {
-    fn new(emulator: Box<dyn Emulator>, debug_view: DebugView) -> State {
+    fn new(conf: &Conf, emulator: Box<dyn Emulator>, debug_view: DebugView) -> State {
+        let progress_mode = if conf.debug_view {
+            ProgressMode::Cycle(false)
+        } else {
+            ProgressMode::Normal
+        };
+
         State {
             emulator,
             debug_view,
-            progress_mode: ProgressMode::Normal,
+            progress_mode,
             speed_factor: 1.0,
             should_draw: true,
         }
@@ -289,7 +295,7 @@ pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
     let emulator = init_emulator(&conf)?;
     debug_view.draw(&emulator)?;
 
-    let mut state = State::new(emulator, debug_view);
+    let mut state = State::new(&conf, emulator, debug_view);
 
     let window_setup = conf::WindowSetup::default()
         .title(format!("memu ({}) - {}", conf.emulator, conf.rom_path).as_str())
