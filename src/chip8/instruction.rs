@@ -187,7 +187,7 @@ pub fn drw_dxyn(e: &mut Chip8, o: Operands) -> bool {
                     let addr = y * super::WIDTH + x;
 
                     // Collision check
-                    if e.screen[addr] == true {
+                    if e.screen[addr] {
                         collision = true;
                     }
 
@@ -206,9 +206,34 @@ pub fn drw_dxyn(e: &mut Chip8, o: Operands) -> bool {
     true
 }
 
+pub fn skp_ex9e(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Reg(r) = o {
+        if e.keypad[r as usize] {
+            e.pc_inc();
+        }
+    }
+    false
+}
+
+pub fn sknp_exa1(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Reg(r) = o {
+        if !e.keypad[r as usize] {
+            e.pc_inc();
+        }
+    }
+    false
+}
+
 pub fn ld_fx07(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
         e.regs[r] = e.reg_dt;
+    }
+    false
+}
+
+pub fn ld_fx0a(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Reg(r) = o {
+        e.await_press = Some(r);
     }
     false
 }

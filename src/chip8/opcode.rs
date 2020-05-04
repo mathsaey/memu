@@ -136,11 +136,11 @@ impl OpCode {
             }
             // Ex9E
             (0xE, _, 9, 0xE) => {
-                Instruction::create(self, "SKP", decode_reg(self), instruction::not_implemented)
+                Instruction::create(self, "SKP", decode_reg(self), instruction::skp_ex9e)
             }
             // ExA1
             (0xE, _, 0xA, 1) => {
-                Instruction::create(self, "SKNP", decode_reg(self), instruction::not_implemented)
+                Instruction::create(self, "SKNP", decode_reg(self), instruction::sknp_exa1)
             }
             // Fx07
             (0xF, _, 0, 7) => {
@@ -148,7 +148,7 @@ impl OpCode {
             }
             // Fx0A
             (0xF, _, 0, 0xA) => {
-                Instruction::create(self, "LD", decode_reg(self), instruction::not_implemented)
+                Instruction::create(self, "LD", decode_reg(self), instruction::ld_fx0a)
             }
             // Fx15
             (0xF, _, 1, 5) => {

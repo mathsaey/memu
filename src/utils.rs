@@ -11,3 +11,5 @@ pub fn draw_pixel(ctx: &mut Context, x: usize, y: usize, col: Color) -> GameResu
     graphics::draw(ctx, &rect, DrawParam::default())?;
     Ok(())
 }
+
+pub use ggez::input::keyboard::is_key_pressed;

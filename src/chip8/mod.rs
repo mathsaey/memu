@@ -2,7 +2,7 @@ mod instruction;
 mod opcode;
 
 use bitvec::vec::BitVec;
-use ggez::{graphics::*, *};
+use ggez::{graphics::*, input::keyboard::KeyCode, *};
 use log::*;
 
 use std::ops::{Index, IndexMut};
@@ -42,17 +42,20 @@ pub struct Chip8 {
     // Stack
     stack: Vec<u16>, // Stack to store program counter
     // Registers
-    regs: Regs,  // General purpose, V0 to VF
-    reg_i: u16,  // Address register
-    reg_pc: u16, // Program counter (pseudo)
-    reg_dt: u8,  // Delay timer
-    reg_st: u8,  // Sound timer
+    regs: Regs,              // General purpose, V0 to VF
+    reg_i: u16,              // Address register
+    reg_pc: u16,             // Program counter (pseudo)
+    reg_dt: u8,              // Delay timer
+    reg_st: u8,              // Sound timer
     // Graphics
-    screen: BitVec, // Screen
+    screen: BitVec,          // Screen
+    // Keypad
+    keypad: BitVec,          // Keypad state
+    await_press: Option<u8>, // Some(reg) if the emulator is waiting for a keypress
     // Timing
-    cycle_timer: Duration, // Elapsed time since last cycle
-    delay_timer: Duration, // Elapsed time since last delay timer tick
-    sound_timer: Duration, // Elapsed time since last sound timer tick
+    cycle_timer: Duration,   // Elapsed time since last cycle
+    delay_timer: Duration,   // Elapsed time since last delay timer tick
+    sound_timer: Duration,   // Elapsed time since last sound timer tick
 }
 
 // Avoid constant typecasting in instructions
@@ -144,6 +147,21 @@ impl crate::Emulator for Chip8 {
         CYCLE_TIME
     }
 
+    fn key_down(&mut self, key: KeyCode) {
+      if let Some(idx) = self.translate_key(key) {
+        if let Some(r) = self.await_press {
+          self.regs[r] = idx as u8;
+        }
+        self.keypad.set(idx, true);
+      }
+    }
+
+    fn key_up(&mut self, key: KeyCode) {
+      if let Some(idx) = self.translate_key(key) {
+        self.keypad.set(idx, false);
+      }
+    }
+
     fn draw_size(&self) -> (f32, f32) {
         (WIDTH as f32, HEIGHT as f32)
     }
@@ -172,6 +190,8 @@ impl Chip8 {
             reg_dt: 0x00,
             reg_st: 0x00,
             screen: BitVec::repeat(false, WIDTH * HEIGHT),
+            keypad: BitVec::repeat(false, 16),
+            await_press: None,
             cycle_timer: Duration::from_millis(0),
             delay_timer: Duration::from_millis(0),
             sound_timer: Duration::from_millis(0)
@@ -181,8 +201,15 @@ impl Chip8 {
         res
     }
 
+
+    // Cycle
+    // -----
+
     fn cycle(&mut self) -> bool {
-        self.fetch().decode().exec(self)
+      match self.await_press {
+        None => self.fetch().decode().exec(self),
+        Some(_) => false
+      }
     }
 
     fn fetch(&mut self) -> OpCode {
@@ -195,6 +222,11 @@ impl Chip8 {
     fn get_opcode(&self, idx: u16) -> OpCode {
         OpCode::from_cells(self.mem[idx], self.mem[idx + 1])
     }
+
+
+    // Utilities
+    // ---------
+
     #[inline]
     fn pc_inc(&mut self) {
         self.reg_pc += 2;
@@ -209,6 +241,43 @@ impl Chip8 {
     fn set_flag(&mut self) {
         self.regs[0xF] = 1;
     }
+
+    // Key Translation
+    // ---------------
+
+    /// Map a keycode onto a hex value.
+    ///
+    /// We map the layout of the chip8 hex keypad onto the qwerty keyboard.
+    ///
+    /// | key | key | key | key |
+    /// |---|---|---|---|
+    /// | 1 | 2 | 3 | C |
+    /// | 4 | 5 | 6 | D |
+    /// | 7 | 8 | 9 | E |
+    /// | A | 0 | B | F |
+    ///
+    /// is mapped onto
+    ///
+    /// | key | key | key | key |
+    /// |---|---|---|---|
+    /// | 1 | 2 | 3 | 4 |
+    /// | q | w | e | r |
+    /// | a | s | d | f |
+    /// | z | x | c | v |
+    ///
+    #[rustfmt::skip]
+    fn translate_key(&self, key: KeyCode) -> Option<usize> {
+        match key {
+          KeyCode::Key1 => Some(0x1), KeyCode::Key2 => Some(0x2), KeyCode::Key3 => Some(0x3), KeyCode::Key4 => Some(0xC),
+          KeyCode::Q    => Some(0x4), KeyCode::W    => Some(0x5), KeyCode::E    => Some(0x6), KeyCode::R    => Some(0xD),
+          KeyCode::A    => Some(0x7), KeyCode::S    => Some(0x8), KeyCode::D    => Some(0x9), KeyCode::F    => Some(0xE),
+          KeyCode::Z    => Some(0xA), KeyCode::X    => Some(0x0), KeyCode::C    => Some(0xB), KeyCode::V    => Some(0xF),
+          _ => None
+        }
+    }
+
+    // Built-in Sprites
+    // ----------------
 
     #[inline]
     fn sprite_addr(&self, digit: u8) -> u16 {

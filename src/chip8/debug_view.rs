@@ -95,6 +95,7 @@ fn draw_registers(state: &Chip8, frame: &mut Frame, rect: Rect) {
     let mut regs: Vec<Text> = Vec::with_capacity(50);
 
     let name_style = Style::default().fg(Color::Blue);
+    let wait_style = Style::default().fg(Color::Red);
 
     for (idx, reg) in state.regs.0.iter().enumerate() {
         regs.push(Text::styled(format!("v{:X} ", idx), name_style));
@@ -110,12 +111,20 @@ fn draw_registers(state: &Chip8, frame: &mut Frame, rect: Rect) {
     regs.push(Text::styled("I  ", name_style));
     regs.push(Text::raw(format!("{:#06X}", state.reg_i)));
 
+    if let Some(_) = state.await_press {
+        regs.push(Text::styled("     Await Key", wait_style));
+    };
+
     regs.push(Text::raw("\n"));
 
     regs.push(Text::styled("ST ", name_style));
     regs.push(Text::raw(format!("{:#04X} ", state.reg_st)));
     regs.push(Text::styled("PC ", name_style));
     regs.push(Text::raw(format!("{:#06X}", state.reg_pc)));
+
+    if let Some(r) = state.await_press {
+        regs.push(Text::styled(format!("          (v{:X})", r), wait_style));
+    };
 
     let par = Paragraph::new(regs.iter())
         .block(Block::default().title("Registers").borders(Borders::ALL))

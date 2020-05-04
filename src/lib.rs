@@ -83,6 +83,12 @@ pub trait Emulator: Debug {
     /// Amount of time that needs to pass for a single cycle
     fn cycle_dt(&self) -> std::time::Duration;
 
+    /// Handle a down event
+    fn key_down(&mut self, key: KeyCode);
+
+    /// Handle a key_up event
+    fn key_up(&mut self, key: KeyCode);
+
     /// Size of the drawn area
     fn draw_size(&self) -> (f32, f32);
 
@@ -283,6 +289,10 @@ impl ggez::event::EventHandler for State {
         self.set_window_size(ctx);
     }
 
+    fn key_up_event(&mut self, _ctx: &mut Context, code: KeyCode, _mods: KeyMods) {
+        self.emulator.key_up(code);
+    }
+
     fn key_down_event(&mut self, ctx: &mut Context, code: KeyCode, _mods: KeyMods, _: bool) {
         match code {
             KeyCode::Escape => event::quit(ctx),
@@ -295,7 +305,7 @@ impl ggez::event::EventHandler for State {
                 ProgressMode::Frame(false) => self.set_progress(),
                 _ => (),
             },
-            key => info!("Ignorning key: {:?}", key),
+            key => self.emulator.key_down(key)
         }
     }
 }
