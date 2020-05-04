@@ -20,7 +20,7 @@ ggez = "0.5"
 structopt = "0.3"
 # Logging
 flexi_logger = "0.15"
-log = "0.4"
+log = { version = "0.4", features = ["release_max_level_warn"] }
 # Debug View
 crossterm = { version = "0.17", optional = true }
 tui = { version = "0.9", optional = true, default-features = false, features = ['crossterm'] }
