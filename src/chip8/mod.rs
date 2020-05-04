@@ -154,13 +154,7 @@ impl crate::Emulator for Chip8 {
             let x = idx % WIDTH;
 
             if pixel_set {
-                let rect = Mesh::new_rectangle(
-                    ctx,
-                    DrawMode::fill(),
-                    [x as f32, y as f32, 1.0, 1.0].into(),
-                    WHITE,
-                )?;
-                graphics::draw(ctx, &rect, DrawParam::default())?;
+                crate::utils::draw_pixel(ctx, x, y, WHITE)?;
             }
         }
         Ok(())

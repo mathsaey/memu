@@ -1,6 +1,7 @@
 // Emulator-agnostic modules
 mod debug_view;
 mod logger;
+mod utils;
 
 // Emulators
 #[cfg(feature = "chip8")]
