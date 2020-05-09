@@ -132,6 +132,26 @@ enum ProgressMode {
     Frame(bool),
 }
 
+impl ProgressMode {
+    fn next(self) -> ProgressMode {
+        match self {
+            ProgressMode::Normal => ProgressMode::Cycle(false),
+            ProgressMode::Cycle(_) => ProgressMode::Frame(false),
+            ProgressMode::Frame(_) => ProgressMode::Normal,
+        }
+    }
+}
+
+impl fmt::Display for ProgressMode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ProgressMode::Normal => f.pad("normal"),
+            ProgressMode::Cycle(_) => f.pad("cycle"),
+            ProgressMode::Frame(_) => f.pad("frame"),
+        }
+    }
+}
+
 struct State {
     emulator: Box<dyn Emulator>,
     debug_view: DebugView,
@@ -142,16 +162,6 @@ struct State {
 
     // Drawing
     should_draw: bool,
-}
-
-impl ProgressMode {
-    fn next(self) -> ProgressMode {
-        match self {
-            ProgressMode::Normal => ProgressMode::Cycle(false),
-            ProgressMode::Cycle(_) => ProgressMode::Frame(false),
-            ProgressMode::Frame(_) => ProgressMode::Normal,
-        }
-    }
 }
 
 impl State {
@@ -203,6 +213,7 @@ impl State {
 
     fn change_progress_mode(&mut self, _ctx: &mut Context) {
         self.progress_mode = self.progress_mode.next();
+        info!("Emulation changed to {:6} mode.", self.progress_mode);
     }
 
     fn inc_speed(&mut self, _ctx: &mut Context) {
@@ -229,7 +240,7 @@ impl State {
     }
 
     fn frame_mode_cycle(&mut self) -> bool {
-        const MAX_CYCLES: u8 = 100;
+        const MAX_CYCLES: u32 = 10000;
 
         let dt = self.emulator.cycle_dt();
         let mut frame = false;
@@ -282,6 +293,7 @@ impl ggez::event::EventHandler for State {
             graphics::present(ctx)?;
         }
 
+        timer::yield_now();
         Ok(())
     }
 
@@ -333,7 +345,8 @@ pub fn run(conf: Conf) -> Result<(), Box<dyn Error>> {
 
     state.set_window_size(ctx);
 
-    info!("Starting game loop");
+    info!("Starting emulation loop in {} mode", state.progress_mode);
     event::run(ctx, event_loop, &mut state)?;
+    info!("Emulation loop finished, shutting down");
     Ok(())
 }
