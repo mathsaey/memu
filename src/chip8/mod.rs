@@ -281,7 +281,7 @@ impl Chip8 {
 
     #[inline]
     fn sprite_addr(&self, digit: u8) -> u16 {
-        (digit * 5) as u16
+        digit as u16 * 5
     }
 
     fn load_sprite(&mut self, digit: u8, sprite: &[u8; 5]) {
