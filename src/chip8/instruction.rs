@@ -306,7 +306,7 @@ pub fn ld_fx65(e: &mut Chip8, o: Operands) -> bool {
 
 pub fn ld_fx29(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
-        let addr = e.regs[r];
+        let addr = e.regs[r] & 0x0F;
         e.reg_i = e.sprite_addr(addr);
     }
     false
