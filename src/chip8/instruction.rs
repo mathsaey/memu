@@ -268,7 +268,7 @@ pub fn drw_dxyn(e: &mut Chip8, o: Operands) -> bool {
 
 pub fn skp_ex9e(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
-        if e.keypad[r as usize] {
+        if e.keypad[(e.regs[r] & 0x0F) as usize] {
             e.pc_inc();
         }
     }
@@ -277,7 +277,7 @@ pub fn skp_ex9e(e: &mut Chip8, o: Operands) -> bool {
 
 pub fn sknp_exa1(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
-        if !e.keypad[r as usize] {
+        if !e.keypad[(e.regs[r] & 0xF) as usize] {
             e.pc_inc();
         }
     }
