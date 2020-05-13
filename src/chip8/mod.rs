@@ -151,6 +151,7 @@ impl crate::Emulator for Chip8 {
       if let Some(idx) = self.translate_key(key) {
         if let Some(r) = self.await_press {
           self.regs[r] = idx as u8;
+          self.await_press = None;
         }
         self.keypad.set(idx, true);
       }
