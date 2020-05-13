@@ -65,7 +65,7 @@ impl OpCode {
             }
             // 5xy0
             (5, _, _, 0) => {
-                Instruction::create(self, "SE", decode_regs(self), instruction::not_implemented)
+                Instruction::create(self, "SE", decode_regs(self), instruction::se_5xy0)
             }
             // 6xkk
             (6, _, _, _) => {
@@ -97,19 +97,16 @@ impl OpCode {
             }
             // 8xy5
             (8, _, _, 5) => {
-                Instruction::create(self, "SUB", decode_regs(self), instruction::not_implemented)
+                Instruction::create(self, "SUB", decode_regs(self), instruction::sub_8xy5)
             }
             // 8xy6
             (8, _, _, 6) => {
                 Instruction::create(self, "SHR", decode_regs(self), instruction::shr_8xy6)
             }
             // 8xy7
-            (8, _, _, 7) => Instruction::create(
-                self,
-                "SUBN",
-                decode_regs(self),
-                instruction::not_implemented,
-            ),
+            (8, _, _, 7) => {
+                Instruction::create(self, "SUBN", decode_regs(self), instruction::sub_8xy7)
+            }
             // 8xyE
             (8, _, _, 0xE) => {
                 Instruction::create(self, "SHL", decode_regs(self), instruction::shl_8xye)

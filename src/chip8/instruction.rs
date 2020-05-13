@@ -90,6 +90,15 @@ pub fn sne_4xnn(e: &mut Chip8, o: Operands) -> bool {
     false
 }
 
+pub fn se_5xy0(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Regs(x, y) = o {
+        if e.regs[x] == e.regs[y] {
+            e.pc_inc();
+        }
+    }
+    false
+}
+
 pub fn ld_6xkk(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::RegAndConst(r, c) = o {
         e.regs[r] = c;
@@ -147,12 +156,43 @@ pub fn add_8xy4(e: &mut Chip8, o: Operands) -> bool {
     false
 }
 
+pub fn sub_8xy5(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Regs(x, y) = o {
+        let lhs = e.regs[x];
+        let rhs = e.regs[y];
+        if  lhs > rhs {
+            e.set_flag();
+            e.regs[x] = lhs - rhs;
+        } else {
+            e.clear_flag();
+            e.regs[x] = 0xFF - (rhs - lhs);
+        }
+    }
+    false
+}
+
+
 pub fn shr_8xy6(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Regs(_, y) = o {
         // Super Chip8 behaviour
         let val = e.regs[y];
         e.regs[0xF] = val & 0x01;
         e.regs[y] = val >> 1;
+    }
+    false
+}
+
+pub fn sub_8xy7(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Regs(x, y) = o {
+        let lhs = e.regs[x];
+        let rhs = e.regs[y];
+        if  rhs > lhs {
+            e.set_flag();
+            e.regs[x] = rhs - lhs;
+        } else {
+            e.clear_flag();
+            e.regs[x] = 0xFF - (lhs - rhs);
+        }
     }
     false
 }
