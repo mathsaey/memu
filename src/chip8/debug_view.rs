@@ -137,8 +137,8 @@ fn draw_stack(state: &Chip8, frame: &mut Frame, rect: Rect) {
     let mut slots: Vec<Text> = Vec::with_capacity(33);
 
     for (idx, addr) in state.stack.iter().enumerate() {
-        slots.push(Text::raw(format!("{:#03}", addr)));
-        slots.push(Text::styled("|", Style::default().fg(Color::Gray)));
+        slots.push(Text::raw(format!("{:#05X}", addr)));
+        slots.push(Text::styled(" |", Style::default().fg(Color::Gray)));
         if (idx + 1) % 8 == 0 {
             slots.push(Text::raw("\n"))
         }
