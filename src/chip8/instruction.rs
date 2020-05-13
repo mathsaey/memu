@@ -147,6 +147,26 @@ pub fn add_8xy4(e: &mut Chip8, o: Operands) -> bool {
     false
 }
 
+pub fn shr_8xy6(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Regs(_, y) = o {
+        // Super Chip8 behaviour
+        let val = e.regs[y];
+        e.regs[0xF] = val & 0x01;
+        e.regs[y] = val >> 1;
+    }
+    false
+}
+
+pub fn shl_8xye(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Regs(_, y) = o {
+        // Super Chip8 behaviour
+        let val = e.regs[y];
+        e.regs[0xF] = (val & 0x80) >> 7;
+        e.regs[y] = val << 1;
+    }
+    false
+}
+
 pub fn ld_annn(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Address(a) = o {
         e.reg_i = a;

@@ -101,7 +101,7 @@ impl OpCode {
             }
             // 8xy6
             (8, _, _, 6) => {
-                Instruction::create(self, "SHR", decode_regs(self), instruction::not_implemented)
+                Instruction::create(self, "SHR", decode_regs(self), instruction::shr_8xy6)
             }
             // 8xy7
             (8, _, _, 7) => Instruction::create(
@@ -112,7 +112,7 @@ impl OpCode {
             ),
             // 8xyE
             (8, _, _, 0xE) => {
-                Instruction::create(self, "SHL", decode_regs(self), instruction::not_implemented)
+                Instruction::create(self, "SHL", decode_regs(self), instruction::shl_8xye)
             }
             // 9xy0
             (9, _, _, 0) => {
