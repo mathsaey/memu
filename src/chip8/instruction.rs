@@ -286,9 +286,9 @@ pub fn ld_fx33(e: &mut Chip8, o: Operands) -> bool {
 
 pub fn ld_fx55(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
+        // Super Chip8 behaviour
         for ctr in 0..(r + 1) {
-            e.mem[e.reg_i] = e.regs[ctr];
-            e.reg_i += 1;
+            e.mem[e.reg_i + ctr as u16] = e.regs[ctr];
         }
     }
     false
@@ -296,9 +296,9 @@ pub fn ld_fx55(e: &mut Chip8, o: Operands) -> bool {
 
 pub fn ld_fx65(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
+        // Super Chip8 behaviour
         for ctr in 0..(r + 1) {
-            e.regs[ctr] = e.mem[e.reg_i];
-            e.reg_i += 1;
+            e.regs[ctr] = e.mem[e.reg_i + ctr as u16];
         }
     }
     false
