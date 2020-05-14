@@ -113,7 +113,7 @@ impl OpCode {
             }
             // 9xy0
             (9, _, _, 0) => {
-                Instruction::create(self, "SNE", decode_regs(self), instruction::not_implemented)
+                Instruction::create(self, "SNE", decode_regs(self), instruction::sne_9xy0)
             }
             // Annn
             (0xA, _, _, _) => {
@@ -121,7 +121,7 @@ impl OpCode {
             }
             // Bnnn
             (0xB, _, _, _) => {
-                Instruction::create(self, "JP", decode_addr(self), instruction::not_implemented)
+                Instruction::create(self, "JP", decode_addr(self), instruction::jp_bnnn)
             }
             // Cxkk
             (0xC, _, _, _) => {
@@ -153,7 +153,7 @@ impl OpCode {
             }
             // Fx18
             (0xF, _, 1, 8) => {
-                Instruction::create(self, "LD", decode_reg(self), instruction::not_implemented)
+                Instruction::create(self, "LD", decode_reg(self), instruction::ld_fx18)
             }
             // Fx1E
             (0xF, _, 1, 0xE) => {

@@ -207,12 +207,29 @@ pub fn shl_8xye(e: &mut Chip8, o: Operands) -> bool {
     false
 }
 
+pub fn sne_9xy0(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Regs(x, y) = o {
+        if e.regs[x] != e.regs[y] {
+            e.pc_inc();
+        }
+    }
+    false
+}
+
 pub fn ld_annn(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Address(a) = o {
         e.reg_i = a;
     }
     false
 }
+
+pub fn jp_bnnn(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Address(a) = o {
+        e.reg_pc = a + (e.regs[0] as u16);
+    }
+    false
+}
+
 
 pub fn rnd_cxkk(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::RegAndConst(r, c) = o {
@@ -301,6 +318,13 @@ pub fn ld_fx0a(e: &mut Chip8, o: Operands) -> bool {
 pub fn ld_fx15(e: &mut Chip8, o: Operands) -> bool {
     if let Operands::Reg(r) = o {
         e.reg_dt = e.regs[r];
+    }
+    false
+}
+
+pub fn ld_fx18(e: &mut Chip8, o: Operands) -> bool {
+    if let Operands::Reg(r) = o {
+        e.reg_st = e.regs[r];
     }
     false
 }
