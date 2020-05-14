@@ -54,8 +54,7 @@ pub struct Chip8 {
     await_press: Option<u8>, // Some(reg) if the emulator is waiting for a keypress
     // Timing
     cycle_timer: Duration,   // Elapsed time since last cycle
-    delay_timer: Duration,   // Elapsed time since last delay timer tick
-    sound_timer: Duration,   // Elapsed time since last sound timer tick
+    clock_timer: Duration    // Timer for sound / delay clocks
 }
 
 // Avoid constant typecasting in instructions
@@ -116,7 +115,7 @@ impl crate::Emulator for Chip8 {
 
     fn advance(&mut self, elapsed: std::time::Duration) -> bool {
         self.cycle_timer += elapsed;
-        self.delay_timer += elapsed;
+        self.clock_timer += elapsed;
 
         let mut draw = false;
 
@@ -125,16 +124,11 @@ impl crate::Emulator for Chip8 {
             draw = draw || self.cycle();
         }
 
-        while self.delay_timer > TIMER_TIME {
-            self.delay_timer -= TIMER_TIME;
+        while self.clock_timer > TIMER_TIME {
+            self.clock_timer -= TIMER_TIME;
             if self.reg_dt > 0 {
                 self.reg_dt -= 1;
             }
-        }
-
-        while self.sound_timer > TIMER_TIME {
-            self.sound_timer -= TIMER_TIME;
-            self.reg_st -= 1;
             if self.reg_st > 0 {
                 self.reg_st -= 1;
             }
@@ -194,8 +188,7 @@ impl Chip8 {
             keypad: BitVec::repeat(false, 16),
             await_press: None,
             cycle_timer: Duration::from_millis(0),
-            delay_timer: Duration::from_millis(0),
-            sound_timer: Duration::from_millis(0)
+            clock_timer: Duration::from_millis(0)
         };
 
         res.load_sprites();
