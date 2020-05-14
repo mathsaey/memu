@@ -15,6 +15,10 @@ Do expect a lot of overengineering as I figure out what I can and cannot do with
 
 Details about the various emulators can be found in `src/<name of emulator>`.
 
+## Current Status
+
+Currently, memu can emulate the chip8 system, albeit without sound.
+
 ## Installation and Use
 
 Use `cargo` to fetch dependencies and build the application:
