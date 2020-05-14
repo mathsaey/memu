@@ -234,17 +234,17 @@ pub fn drw_dxyn(e: &mut Chip8, o: Operands) -> bool {
         let sprite = &e.mem.0[i..i + c as usize];
 
         // Feth the location to draw
-        // Coordinates should wrap around
-        let base_x = e.regs[x] as usize % super::WIDTH;
-        let base_y = e.regs[y] as usize % super::HEIGHT;
-        let c = c as usize;
+        let base_x = e.regs[x];
+        let base_y = e.regs[y];
 
         // Iterate over every bit in the sprite, to chec if it is set
         for (sprite_y, y) in (base_y..(base_y + c)).enumerate() {
             for (sprite_x, x) in (base_x..(base_x + 8)).enumerate() {
                 if (sprite[sprite_y] & (0b10000000 >> sprite_x)) != 0 {
-
-                    let addr = (y * super::WIDTH + x) as usize;
+                    // Coordinates should wrap around
+                    let x = x as usize % super::WIDTH;
+                    let y = y as usize % super::HEIGHT;
+                    let addr =  y * super::WIDTH + x ;
 
                     // Collision check
                     if e.screen[addr] {
