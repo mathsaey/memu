@@ -1,10 +1,9 @@
 use std::error::Error;
 
 use flexi_logger::writers::LogWriter;
-use flexi_logger::{DeferredNow, FormatFunction, Level, Record};
+use flexi_logger::{DeferredNow, FormatFunction, Record};
 
 use crate::Conf;
-use crate::logger;
 use crate::Emulator;
 use crate::MissingFeatureError;
 
@@ -30,10 +29,10 @@ impl DebugView {
         None
     }
 
-    pub fn log_handle(&mut self, handle: flexi_logger::ReconfigurationHandle) {
+    pub fn log_handle(&mut self, _handle: flexi_logger::ReconfigurationHandle) {
     }
 
-    pub fn draw(&mut self, emulator: &Box<dyn Emulator>) -> Result<(), Box<dyn Error>> {
+    pub fn draw(&mut self, _emulator: &Box<dyn Emulator>) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 }
