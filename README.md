@@ -13,24 +13,44 @@ Ideally, some of the abstractions created for this purpose can be reused for a f
 Since I am using this code mainly as a way to mess around with Rust do not expect idiomatic code here.
 Do expect a lot of overengineering as I figure out what I can and cannot do with Rust.
 
-Details about the various emulators can be found in `src/<name of emulator>`.
+Details about a given emulator can be found in `src/<name of emulator>`.
 
 ## Current Status
 
 Currently, memu can emulate the chip8 system, albeit without sound.
+Not that many roms were tested, so expect some bugs.
 
-## Installation and Use
+## Build / Installation
 
-Use `cargo` to fetch dependencies and build the application:
+Fetch the code, and use `cargo` to build and run it:
 
-- `cargo build`
+- `git clone https://github.com/mathsaey/memu.git`
+- `cd memu`
+- `cargo run`
 
-Afterwards, run the generated binary, pass the `--help` switch to find out the available options:
+If you're so inclined, you can use `cargo install --path .` to install memu.
 
-- `cargo run -- --help`
+## Use
 
-For more serious use, install the generated binary somewhere, so you don't always need to use `cargo run -- …` to run the application.
-If you want to actually use this to play games, be sure to build in `release`: `cargo build --release`.
+To use memu, call it with an emulator name and a path to a rom for that emulator: `memu <emulator> <rom-path>`.
+To use your terminal as a debug view, pass the `-D` flag; for a full list of options, use `memu --help`.
+If you are using `cargo run`, replace `memu` with `cargo run --`.
+
+Once the emulator is running, use `<esc>` to close it.
+
+### Emulation modes
+
+memu supports 3 different emulation modes:
+
+- _cycle_: In cycle mode, the emulator executes a single instruction every time `<space>` is pressed.
+  The emulator will start in cycle mode if the debug view is enabled (`-D`).
+  Pressing `/` will change the emulator to _frame_ mode.
+- _frame_: In frame mode, pressing `<space>` will make the emulator execute instructions until a redraw is required.
+  Pressing `/` will put you in normal mode.
+- _normal_: In this mode, the emulator runs at its normal speed.
+  Pressing `<` or `>` will slow down or speed up the emulation speed, respectively.
+  Press `/` to change to _cycle_ mode.
+  Emulation starts in this mode if the debug view is not enabled.
 
 # (Non) Goals
 
