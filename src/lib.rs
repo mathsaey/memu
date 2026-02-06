@@ -10,8 +10,7 @@ mod chip8;
 use ggez::{conf::*, input::keyboard::*, *};
 use log::*;
 
-use structopt::clap::arg_enum;
-use structopt::StructOpt;
+use clap::{Parser, ValueEnum};
 
 use std::error::Error;
 use std::fmt;
@@ -23,30 +22,36 @@ use debug_view::{Debug, DebugView};
 // Configuration //
 // ------------- //
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 #[structopt(name = "memu")]
 pub struct Conf {
     /// Show the current state of the emulator in the console
-    #[structopt(short = "D", long)]
+    #[arg(short = 'D', long)]
     debug_view: bool,
-    #[structopt(
-        short, long, case_insensitive = true, hide_default_value = true,
-        possible_values= &["trace", "debug", "info", "warn", "error", "off"],
-        default_value="warn", default_value_if("debug-view", None, "trace"),
+    #[arg(
+        short, long, hide_default_value = true, value_enum,
+        default_value="warn", default_value_if("debug-view", "true", "trace"),
     )]
     /// The log level to use. Defaults to `trace` if `--debug_view` is set, or `warn` otherwise
     log_level: LevelFilter,
-    #[structopt(possible_values = &EmulatorKind::variants(), case_insensitive = true)]
+    #[arg(value_enum)]
     /// Emulator to use
     emulator: EmulatorKind,
     /// Path to the rom to emulate
     rom_path: String,
 }
 
-arg_enum! {
-    #[derive(Debug, Clone, Copy)]
-    pub enum EmulatorKind {
-        Chip8,
+#[derive(ValueEnum, Debug, Clone, Copy)]
+pub enum EmulatorKind {
+    Chip8,
+}
+
+impl fmt::Display for EmulatorKind {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let name = match self {
+            EmulatorKind::Chip8 => "Chip 8",
+        };
+        write!(fmt, "{}", name)
     }
 }
 

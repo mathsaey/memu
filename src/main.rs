@@ -1,7 +1,7 @@
 use memu::Conf;
-use structopt::StructOpt;
+use clap::Parser;
 
 fn main() {
-    let conf = Conf::from_args();
+    let conf = Conf::parse();
     memu::run(conf).unwrap_or_else(|e| println!("Error: {}", e));
 }
