@@ -1,7 +1,7 @@
 mod instruction;
 mod opcode;
 
-use bitvec::vec::BitVec;
+use bitvec::{BitArr, bitarr};
 use ggez::{graphics::*, input::keyboard::KeyCode, *};
 use log::*;
 
@@ -48,9 +48,9 @@ pub struct Chip8 {
     reg_dt: u8,              // Delay timer
     reg_st: u8,              // Sound timer
     // Graphics
-    screen: BitVec,          // Screen
+    screen: BitArr!(for WIDTH * HEIGHT),
     // Keypad
-    keypad: BitVec,          // Keypad state
+    keypad: BitArr!(for 16), // Keypad state
     await_press: Option<u8>, // Some(reg) if the emulator is waiting for a keypress
     // Timing
     cycle_timer: Duration,   // Elapsed time since last cycle
@@ -162,13 +162,11 @@ impl crate::Emulator for Chip8 {
     }
 
     fn draw(&self, ctx: &mut Context) -> GameResult<()> {
-        for (idx, &pixel_set) in self.screen.iter().enumerate() {
-            let y = idx / WIDTH;
+        for idx in self.screen.as_bitslice().iter_ones() {
             let x = idx % WIDTH;
+            let y = idx / WIDTH;
 
-            if pixel_set {
-                crate::utils::draw_pixel(ctx, x, y, WHITE)?;
-            }
+            crate::utils::draw_pixel(ctx, x, y, WHITE)?;
         }
         Ok(())
     }
@@ -184,8 +182,8 @@ impl Chip8 {
             reg_pc: 0x200, // Programs start at 0x200
             reg_dt: 0x00,
             reg_st: 0x00,
-            screen: BitVec::repeat(false, WIDTH * HEIGHT),
-            keypad: BitVec::repeat(false, 16),
+            screen: bitarr![0; WIDTH * HEIGHT],
+            keypad: bitarr![0; 16],
             await_press: None,
             cycle_timer: Duration::from_millis(0),
             clock_timer: Duration::from_millis(0)
